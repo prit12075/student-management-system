@@ -2,6 +2,8 @@
 
 **CSE 309 – Advanced Java Programming • Course Project • SRM University AP**
 
+🔗 **GitHub repository:** https://github.com/prit12075/student-management-system
+
 This is a full-stack University ERP built with **Java 21 and Spring Boot 3.3**. Each topic of the Advanced Java syllabus (Units 1–5) is used as a real feature of the product:
 
 | Unit | Java concepts | Owner | Where it lives |
