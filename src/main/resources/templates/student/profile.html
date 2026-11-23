@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head th:replace="~{fragments/layout :: head('My Profile & Notice Board')}"></head>
+<body>
+<div class="erp-wrapper">
+    <aside th:replace="~{fragments/layout :: studentSidebar('profile')}"></aside>
+
+    <div class="erp-main">
+        <header th:replace="~{fragments/layout :: topbar('Student Personal Profile & Notice Board', 'View Academic Identity, Update Contact/Password & Read Official Notices')}"></header>
+
+        <main class="erp-content">
+            <div th:replace="~{fragments/layout :: flashMessages}"></div>
+
+            <div class="row g-4">
+                <!-- Left Column: Student Personal Profile & Security Update -->
+                <div class="col-lg-5">
+                    <div class="erp-card">
+                        <div class="erp-card-header">
+                            <h2 class="erp-card-title"><i class="bi bi-person-vcard-fill text-primary"></i> Personal &amp; Academic Profile</h2>
+                        </div>
+                        <div class="p-3 small">
+                            <div class="mb-2 d-flex justify-content-between border-bottom pb-2">
+                                <span class="text-muted">Student Name:</span>
+                                <span class="fw-bold" th:text="${currentStudent.fullName}">Name</span>
+                            </div>
+                            <div class="mb-2 d-flex justify-content-between border-bottom pb-2">
+                                <span class="text-muted">University Roll No:</span>
+                                <span class="fw-bold text-primary" th:text="${currentStudent.rollNumber}">STU001</span>
+                            </div>
+                            <div class="mb-2 d-flex justify-content-between border-bottom pb-2">
+                                <span class="text-muted">Portal Login Username:</span>
+                                <code th:text="${currentStudent.user.username}">student1</code>
+                            </div>
+                            <div class="mb-2 d-flex justify-content-between border-bottom pb-2">
+                                <span class="text-muted">Department:</span>
+                                <span class="fw-semibold" th:text="${currentStudent.department.name}">CSE</span>
+                            </div>
+                            <div class="mb-2 d-flex justify-content-between border-bottom pb-2">
+                                <span class="text-muted">Course / Programme:</span>
+                                <span class="fw-semibold" th:text="${currentStudent.course.name}">B.Tech CSE</span>
+                            </div>
+                            <div class="mb-2 d-flex justify-content-between border-bottom pb-2">
+                                <span class="text-muted">Semester / Section:</span>
+                                <span class="fw-semibold" th:text="'Semester ' + ${currentStudent.semester} + ' (Section ' + ${currentStudent.section} + ')'">Sem 5</span>
+                            </div>
+                            <div class="mb-2 d-flex justify-content-between border-bottom pb-2">
+                                <span class="text-muted">Date of Birth / Gender:</span>
+                                <span th:text="${currentStudent.dateOfBirth + ' • ' + currentStudent.gender}">DOB</span>
+                            </div>
+                            <div class="mb-2 d-flex justify-content-between border-bottom pb-2">
+                                <span class="text-muted">University Email:</span>
+                                <span th:text="${currentStudent.email}">email</span>
+                            </div>
+                            <div class="d-flex justify-content-between">
+                                <span class="text-muted">Guardian Details:</span>
+                                <span th:text="${currentStudent.guardianName + ' (' + currentStudent.guardianPhone + ')'}">Guardian</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="erp-card mb-0">
+                        <div class="erp-card-header">
+                            <h2 class="erp-card-title"><i class="bi bi-shield-lock-fill text-primary"></i> Update Contact &amp; Password</h2>
+                        </div>
+                        <div class="p-3">
+                            <form th:action="@{/student/profile/update}" method="post" class="row g-3">
+                                <div class="col-12">
+                                    <label class="form-label small fw-semibold mb-1">Phone Number</label>
+                                    <input type="text" name="phone" class="form-control form-control-sm" th:value="${currentStudent.phone}">
+                                </div>
+                                <div class="col-12">
+                                    <label class="form-label small fw-semibold mb-1">Residential Address</label>
+                                    <input type="text" name="address" class="form-control form-control-sm" th:value="${currentStudent.address}">
+                                </div>
+                                <div class="col-12">
+                                    <label class="form-label small fw-semibold mb-1">New Password (BCrypt Encrypted)</label>
+                                    <input type="password" name="newPassword" class="form-control form-control-sm"
+                                           placeholder="Leave blank to keep existing password">
+                                </div>
+                                <div class="col-12">
+                                    <button type="submit" class="btn btn-primary btn-sm w-100 py-2 fw-bold">
+                                        <i class="bi bi-save2-fill me-1"></i>Save Profile &amp; Security Changes
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right Column: University Notice Board -->
+                <div class="col-lg-7">
+                    <div class="erp-card mb-0">
+                        <div class="erp-card-header">
+                            <h2 class="erp-card-title">
+                                <i class="bi bi-megaphone-fill text-primary"></i>
+                                Official University &amp; Department Notice Board
+                            </h2>
+                        </div>
+                        <div class="p-3">
+                            <div th:each="n : ${notices}" class="p-3 rounded-3 border mb-3"
+                                 th:classappend="${n.pinned} ? 'bg-light border-primary' : 'bg-white'">
+                                <div class="d-flex justify-content-between align-items-center mb-1">
+                                    <div>
+                                        <span th:if="${n.pinned}" class="badge bg-danger me-1">PINNED</span>
+                                        <span class="badge badge-soft-primary" th:text="${n.category}">ACADEMIC</span>
+                                        <span th:if="${n.department != null}" class="badge bg-info text-dark ms-1" th:text="${n.department.code}">CSE</span>
+                                    </div>
+                                    <small class="text-muted" th:text="${#temporals.format(n.publishedDate, 'dd MMM yyyy')}">Date</small>
+                                </div>
+                                <h3 class="h6 fw-bold text-dark mb-1" th:text="${n.title}">Title</h3>
+                                <p class="small text-secondary mb-1" th:text="${n.content}">Content</p>
+                                <div class="text-muted" style="font-size: 0.72rem;"
+                                     th:text="'Issued by: ' + (${n.postedBy != null ? n.postedBy.fullName : 'Registrar Office'})">Registrar</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+</div>
+<div th:replace="~{fragments/layout :: scripts}"></div>
+</body>
+</html>
+

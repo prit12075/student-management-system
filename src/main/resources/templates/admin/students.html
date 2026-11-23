@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head th:replace="~{fragments/layout :: head('Students Management')}"></head>
+<body>
+<div class="erp-wrapper">
+    <aside th:replace="~{fragments/layout :: adminSidebar('students')}"></aside>
+
+    <div class="erp-main">
+        <header th:replace="~{fragments/layout :: topbar('Student Directory & Enrollment Management', 'Add, Update, Search, Filter & Monitor Student Records')}"></header>
+
+        <main class="erp-content">
+            <div th:replace="~{fragments/layout :: flashMessages}"></div>
+
+            <!-- Search & Filter Bar -->
+            <div class="erp-card">
+                <div class="p-3">
+                    <form th:action="@{/admin/students}" method="get" class="row g-2 align-items-end">
+                        <div class="col-md-4">
+                            <label class="form-label small fw-semibold text-secondary mb-1">Search Name, Roll No, or Email</label>
+                            <div class="input-group input-group-sm">
+                                <span class="input-group-text bg-light"><i class="bi bi-search"></i></span>
+                                <input type="text" name="keyword" class="form-control" th:value="${keyword}" placeholder="e.g. STU2026001 or Aarav...">
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label small fw-semibold text-secondary mb-1">Department</label>
+                            <select name="departmentId" class="form-select form-select-sm">
+                                <option value="">All Departments</option>
+                                <option th:each="dept : ${departments}" th:value="${dept.id}"
+                                        th:text="${dept.code + ' - ' + dept.name}"
+                                        th:selected="${selectedDepartmentId != null and selectedDepartmentId == dept.id}"></option>
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label small fw-semibold text-secondary mb-1">Semester</label>
+                            <select name="semester" class="form-select form-select-sm">
+                                <option value="">All Semesters</option>
+                                <option th:each="s : ${#numbers.sequence(1,8)}" th:value="${s}"
+                                        th:text="'Semester ' + ${s}"
+                                        th:selected="${selectedSemester != null and selectedSemester == s}"></option>
+                            </select>
+                        </div>
+                        <div class="col-md-3 d-flex gap-2">
+                            <button type="submit" class="btn btn-sm btn-primary px-3">
+                                <i class="bi bi-funnel-fill me-1"></i>Filter
+                            </button>
+                            <a th:href="@{/admin/students}" class="btn btn-sm btn-outline-secondary">Reset</a>
+                            <a th:href="@{/admin/reports/performance/pdf(departmentId=${selectedDepartmentId})}" class="btn btn-sm btn-outline-danger ms-auto">
+                                <i class="bi bi-file-earmark-pdf-fill me-1"></i>PDF
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <div class="row g-4">
+                <!-- Left Column: Add / Update Student Form -->
+                <div class="col-lg-4">
+                    <div class="erp-card">
+                        <div class="erp-card-header">
+                            <h2 class="erp-card-title">
+                                <i class="bi bi-person-plus-fill text-primary"></i>
+                                <span th:text="${editStudent.id != null ? 'Update Student (' + editStudent.rollNumber + ')' : 'Enroll New Student'}">Enroll Student</span>
+                            </h2>
+                            <a th:if="${editStudent.id != null}" th:href="@{/admin/students}" class="btn btn-sm btn-outline-secondary">Cancel Edit</a>
+                        </div>
+                        <div class="p-3">
+                            <form th:action="@{/admin/students/save}" method="post" class="row g-2">
+                                <input type="hidden" name="id" th:value="${editStudent.id}">
+
+                                <div class="col-6">
+                                    <label class="form-label small fw-semibold mb-1">Roll Number *</label>
+                                    <input type="text" name="rollNumber" class="form-control form-control-sm"
+                                           th:value="${editStudent.rollNumber}" placeholder="STU2026010" required>
+                                </div>
+                                <div class="col-6">
+                                    <label class="form-label small fw-semibold mb-1">Gender</label>
+                                    <select name="gender" class="form-select form-select-sm">
+                                        <option value="Male" th:selected="${editStudent.gender == 'Male'}">Male</option>
+                                        <option value="Female" th:selected="${editStudent.gender == 'Female'}">Female</option>
+                                        <option value="Other" th:selected="${editStudent.gender == 'Other'}">Other</option>
+                                    </select>
+                                </div>
+
+                                <div class="col-6">
+                                    <label class="form-label small fw-semibold mb-1">First Name *</label>
+                                    <input type="text" name="firstName" class="form-control form-control-sm"
+                                           th:value="${editStudent.firstName}" required>
+                                </div>
+                                <div class="col-6">
+                                    <label class="form-label small fw-semibold mb-1">Last Name *</label>
+                                    <input type="text" name="lastName" class="form-control form-control-sm"
+                                           th:value="${editStudent.lastName}" required>
+                                </div>
+
+                                <div class="col-12">
+                                    <label class="form-label small fw-semibold mb-1">University Email *</label>
+                                    <input type="email" name="email" class="form-control form-control-sm"
+                                           th:value="${editStudent.email}" placeholder="student@student.apex.edu" required>
+                                </div>
+
+                                <div class="col-6">
+                                    <label class="form-label small fw-semibold mb-1">Phone</label>
+                                    <input type="text" name="phone" class="form-control form-control-sm"
+                                           th:value="${editStudent.phone}" placeholder="+91-98765...">
+                                </div>
+                                <div class="col-6">
+                                    <label class="form-label small fw-semibold mb-1">Date of Birth</label>
+                                    <input type="date" name="dateOfBirth" class="form-control form-control-sm"
+                                           th:value="${editStudent.dateOfBirth != null ? editStudent.dateOfBirth : '2005-05-15'}">
+                                </div>
+
+                                <div class="col-12">
+                                    <label class="form-label small fw-semibold mb-1">Department *</label>
+                                    <select name="departmentId" class="form-select form-select-sm" required>
+                                        <option th:each="d : ${departments}" th:value="${d.id}"
+                                                th:text="${d.code + ' - ' + d.name}"
+                                                th:selected="${editStudent.department != null and editStudent.department.id == d.id}"></option>
+                                    </select>
+                                </div>
+
+                                <div class="col-12">
+                                    <label class="form-label small fw-semibold mb-1">Course / Programme *</label>
+                                    <select name="courseId" class="form-select form-select-sm" required>
+                                        <option th:each="c : ${courses}" th:value="${c.id}"
+                                                th:text="${c.code + ' - ' + c.name}"
+                                                th:selected="${editStudent.course != null and editStudent.course.id == c.id}"></option>
+                                    </select>
+                                </div>
+
+                                <div class="col-4">
+                                    <label class="form-label small fw-semibold mb-1">Semester *</label>
+                                    <input type="number" name="semester" min="1" max="8" class="form-control form-control-sm"
+                                           th:value="${editStudent.semester != null ? editStudent.semester : 5}" required>
+                                </div>
+                                <div class="col-4">
+                                    <label class="form-label small fw-semibold mb-1">Section</label>
+                                    <input type="text" name="section" class="form-control form-control-sm"
+                                           th:value="${editStudent.section != null ? editStudent.section : 'A'}">
+                                </div>
+                                <div class="col-4">
+                                    <label class="form-label small fw-semibold mb-1">Batch Year</label>
+                                    <input type="number" name="enrollmentYear" class="form-control form-control-sm"
+                                           th:value="${editStudent.enrollmentYear != null ? editStudent.enrollmentYear : 2024}">
+                                </div>
+
+                                <div class="col-6">
+                                    <label class="form-label small fw-semibold mb-1">Guardian Name</label>
+                                    <input type="text" name="guardianName" class="form-control form-control-sm"
+                                           th:value="${editStudent.guardianName}">
+                                </div>
+                                <div class="col-6">
+                                    <label class="form-label small fw-semibold mb-1">Guardian Phone</label>
+                                    <input type="text" name="guardianPhone" class="form-control form-control-sm"
+                                           th:value="${editStudent.guardianPhone}">
+                                </div>
+
+                                <div class="col-12">
+                                    <label class="form-label small fw-semibold mb-1">Residential Address</label>
+                                    <input type="text" name="address" class="form-control form-control-sm"
+                                           th:value="${editStudent.address}">
+                                </div>
+
+                                <div class="col-12">
+                                    <label class="form-label small fw-semibold mb-1">Portal Password (BCrypt)</label>
+                                    <input type="password" name="password" class="form-control form-control-sm"
+                                           placeholder="Default: student123 (leave blank to keep)">
+                                </div>
+
+                                <div class="col-12 mt-3">
+                                    <button type="submit" class="btn btn-primary btn-sm w-100 fw-bold py-2">
+                                        <i class="bi bi-check2-circle me-1"></i>
+                                        <span th:text="${editStudent.id != null ? 'Update Student Record' : 'Enroll Student & Create Account'}">Save</span>
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right Column: Student Directory Table -->
+                <div class="col-lg-8">
+                    <div class="erp-card mb-0">
+                        <div class="erp-card-header">
+                            <h2 class="erp-card-title">
+                                <i class="bi bi-table text-primary"></i>
+                                Enrolled Students Directory (<span th:text="${#lists.size(students)}">0</span>)
+                            </h2>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="table table-hover table-erp mb-0">
+                                <thead>
+                                <tr>
+                                    <th>Roll No</th>
+                                    <th>Student Details</th>
+                                    <th>Dept & Sem</th>
+                                    <th>Attendance</th>
+                                    <th>Performance</th>
+                                    <th class="text-end">Actions</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                <tr th:each="s : ${students}" th:with="perf=${perfMap[s.id]}">
+                                    <td>
+                                        <span class="fw-bold text-primary" th:text="${s.rollNumber}">STU001</span>
+                                        <div class="text-muted" style="font-size: 0.72rem;" th:text="'Login: ' + ${s.user.username}">user</div>
+                                    </td>
+                                    <td>
+                                        <div class="fw-semibold" th:text="${s.fullName}">Aarav Sharma</div>
+                                        <div class="text-muted small" th:text="${s.email}">email</div>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-primary bg-opacity-10 text-primary fw-bold" th:text="${s.department.code}">CSE</span>
+                                        <span class="small text-muted d-block" th:text="'Sem ' + ${s.semester} + ' (Sec ' + ${s.section} + ')'">Sem 5</span>
+                                    </td>
+                                    <td>
+                                        <span class="fw-bold"
+                                              th:classappend="${perf.lowAttendanceAlert} ? 'text-danger' : 'text-success'"
+                                              th:text="${perf.attendancePercentage} + '%'">90%</span>
+                                        <span th:if="${perf.lowAttendanceAlert}" class="badge badge-soft-danger d-block mt-1" style="font-size: 0.68rem;">
+                                            <i class="bi bi-exclamation-triangle-fill"></i> &lt;75% ALERT
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <div class="fw-semibold" th:text="'SGPA: ' + ${perf.sgpa}">9.2</div>
+                                        <div class="small text-muted" th:text="${perf.averagePercentage} + '% (' + ${perf.overallGrade} + ')'">88%</div>
+                                    </td>
+                                    <td class="text-end">
+                                        <div class="d-inline-flex gap-1">
+                                            <a th:href="@{/admin/students/view/{id}(id=${s.id})}" class="btn btn-sm btn-outline-primary" title="360° Profile">
+                                                <i class="bi bi-eye"></i>
+                                            </a>
+                                            <a th:href="@{/admin/students/{id}/marksheet/pdf(id=${s.id})}" class="btn btn-sm btn-outline-dark" title="Download PDF Marksheet">
+                                                <i class="bi bi-file-earmark-pdf"></i>
+                                            </a>
+                                            <a th:href="@{/admin/students(editId=${s.id})}" class="btn btn-sm btn-outline-secondary" title="Edit Student">
+                                                <i class="bi bi-pencil-square"></i>
+                                            </a>
+                                            <form th:action="@{/admin/students/delete/{id}(id=${s.id})}" method="post" class="d-inline"
+                                                  onsubmit="return confirm('Delete this student and all linked attendance/marks records?');">
+                                                <button type="submit" class="btn btn-sm btn-outline-danger" title="Delete">
+                                                    <i class="bi bi-trash"></i>
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </td>
+                                </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+</div>
+<div th:replace="~{fragments/layout :: scripts}"></div>
+</body>
+</html>
+

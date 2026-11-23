@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head th:replace="~{fragments/layout :: head('Faculty Dashboard')}"></head>
+<body>
+<div class="erp-wrapper">
+    <aside th:replace="~{fragments/layout :: facultySidebar('dashboard')}"></aside>
+
+    <div class="erp-main">
+        <header th:replace="~{fragments/layout :: topbar('Faculty Academic Dashboard', 'Welcome, Dr. ' + currentFaculty.fullName + ' • ' + currentFaculty.designation + ' (' + currentFaculty.department.name + ')')}"></header>
+
+        <main class="erp-content">
+            <div th:replace="~{fragments/layout :: flashMessages}"></div>
+
+            <!-- KPI Cards -->
+            <div class="row g-3 mb-4">
+                <div class="col-sm-6 col-xl-3">
+                    <div class="erp-stat-card">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <div class="text-muted small fw-semibold text-uppercase">Assigned Subjects</div>
+                                <div class="h3 fw-bold mb-1 mt-1" th:text="${totalAssignedSubjects}">3</div>
+                                <span class="small text-muted" th:text="${currentFaculty.department.code + ' Department'}">CSE</span>
+                            </div>
+                            <div class="erp-stat-icon bg-primary bg-opacity-10 text-primary">
+                                <i class="bi bi-journal-bookmark-fill"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-sm-6 col-xl-3">
+                    <div class="erp-stat-card stat-success">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <div class="text-muted small fw-semibold text-uppercase">Students Enrolled</div>
+                                <div class="h3 fw-bold mb-1 mt-1" th:text="${totalStudentsTaught}">6</div>
+                                <a th:href="@{/faculty/attendance}" class="small text-decoration-none fw-semibold">Mark Attendance &rarr;</a>
+                            </div>
+                            <div class="erp-stat-icon bg-success bg-opacity-10 text-success">
+                                <i class="bi bi-people-fill"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-sm-6 col-xl-3">
+                    <div class="erp-stat-card stat-warning">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <div class="text-muted small fw-semibold text-uppercase">Assignments Posted</div>
+                                <div class="h3 fw-bold mb-1 mt-1" th:text="${assignmentsCount}">2</div>
+                                <a th:href="@{/faculty/assignments}" class="small text-decoration-none fw-semibold">Manage Assignments &rarr;</a>
+                            </div>
+                            <div class="erp-stat-icon bg-warning bg-opacity-10 text-warning">
+                                <i class="bi bi-journal-code"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-sm-6 col-xl-3">
+                    <div class="erp-stat-card stat-danger">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <div class="text-danger small fw-bold text-uppercase">Low Attendance (&lt;75%)</div>
+                                <div class="h3 fw-bold text-danger mb-1 mt-1" th:text="${lowAttendanceCount}">2</div>
+                                <a th:href="@{/faculty/performance}" class="small text-danger text-decoration-none fw-bold">View Flagged Students &rarr;</a>
+                            </div>
+                            <div class="erp-stat-icon bg-danger bg-opacity-10 text-danger">
+                                <i class="bi bi-exclamation-triangle-fill"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Assigned Classes & Subject Analytics Row -->
+            <div class="row g-4 mb-4">
+                <div class="col-lg-7">
+                    <div class="erp-card h-100 mb-0">
+                        <div class="erp-card-header">
+                            <h2 class="erp-card-title">
+                                <i class="bi bi-easel2-fill text-primary"></i>
+                                My Assigned Subjects & Quick Classroom Actions
+                            </h2>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="table table-hover table-erp mb-0">
+                                <thead>
+                                <tr>
+                                    <th>Code</th>
+                                    <th>Subject Name</th>
+                                    <th>Class / Sem</th>
+                                    <th>Type</th>
+                                    <th class="text-end">Quick Actions</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                <tr th:each="sub : ${assignedSubjects}">
+                                    <td class="fw-bold text-primary" th:text="${sub.code}">CS501</td>
+                                    <td class="fw-semibold" th:text="${sub.name}">Algorithms</td>
+                                    <td th:text="'Sem ' + ${sub.semester} + ' (Sec ' + ${sub.section} + ')'">Sem 5 (A)</td>
+                                    <td><span class="badge badge-soft-primary" th:text="${sub.subjectType + ' • ' + sub.credits + ' Cr'}">THEORY</span></td>
+                                    <td class="text-end">
+                                        <div class="d-inline-flex gap-1">
+                                            <a th:href="@{/faculty/attendance(subjectId=${sub.id})}" class="btn btn-sm btn-primary" title="Mark Attendance">
+                                                <i class="bi bi-calendar2-check"></i> Attendance
+                                            </a>
+                                            <a th:href="@{/faculty/marks(subjectId=${sub.id})}" class="btn btn-sm btn-outline-primary" title="Enter Marks">
+                                                <i class="bi bi-award"></i> Marks
+                                            </a>
+                                            <a th:href="@{/faculty/reports/attendance/pdf(subjectId=${sub.id})}" class="btn btn-sm btn-outline-dark" title="Download Attendance PDF">
+                                                <i class="bi bi-file-earmark-pdf"></i>
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-lg-5">
+                    <div class="erp-card h-100 mb-0">
+                        <div class="erp-card-header">
+                            <h2 class="erp-card-title">
+                                <i class="bi bi-bar-chart-fill text-primary"></i>
+                                Assigned Subject Attendance % vs Marks %
+                            </h2>
+                        </div>
+                        <div class="p-3">
+                            <canvas id="facultySubjectChart" height="175"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Low Attendance Alerts & Teaching Schedule -->
+            <div class="row g-4">
+                <div class="col-lg-7">
+                    <div class="erp-card mb-0">
+                        <div class="erp-card-header">
+                            <h2 class="erp-card-title text-danger">
+                                <i class="bi bi-exclamation-octagon-fill text-danger"></i>
+                                Low Attendance (&lt;75%) Alerts in My Assigned Subjects
+                            </h2>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="table table-hover table-erp mb-0">
+                                <thead>
+                                <tr>
+                                    <th>Roll No</th>
+                                    <th>Student Name</th>
+                                    <th>Subject</th>
+                                    <th>Attended</th>
+                                    <th>Percentage</th>
+                                    <th>Shortfall</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                <tr th:each="alert : ${lowAttendanceAlerts}">
+                                    <td class="fw-bold text-primary" th:text="${alert.student.rollNumber}">STU003</td>
+                                    <td class="fw-semibold" th:text="${alert.student.fullName}">Rohan Gupta</td>
+                                    <td><span class="badge bg-secondary" th:text="${alert.subject.code}">CS501</span></td>
+                                    <td th:text="${alert.presentCount + ' / ' + alert.totalClasses}">6 / 10</td>
+                                    <td class="fw-bold text-danger" th:text="${alert.attendancePercentage + '%'}">60%</td>
+                                    <td>
+                                        <span class="badge badge-soft-danger"
+                                              th:text="'Needs ' + ${alert.classesNeededFor75} + ' classes for 75%'">Needs 6</span>
+                                    </td>
+                                </tr>
+                                <tr th:if="${#lists.isEmpty(lowAttendanceAlerts)}">
+                                    <td colspan="6" class="text-center text-muted py-4">
+                                        All students in your assigned subjects have &gt;= 75% attendance.
+                                    </td>
+                                </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-lg-5">
+                    <div class="erp-card mb-0">
+                        <div class="erp-card-header">
+                            <h2 class="erp-card-title">
+                                <i class="bi bi-calendar-week text-primary"></i>
+                                My Teaching Timetable
+                            </h2>
+                        </div>
+                        <div class="p-3">
+                            <div th:each="slot : ${timetableSlots}" class="d-flex justify-content-between align-items-center border-bottom pb-2 mb-2">
+                                <div>
+                                    <span class="badge bg-primary me-1" th:text="${slot.dayOfWeek}">MONDAY</span>
+                                    <span class="fw-bold small text-dark" th:text="${slot.subject.code + ' - ' + slot.subject.name}">CS501</span>
+                                    <div class="text-muted" style="font-size: 0.75rem;"
+                                         th:text="${slot.startTime + ' - ' + slot.endTime + ' • Room ' + slot.roomNumber + ' (' + slot.slotType + ')'}">Time</div>
+                                </div>
+                                <span class="badge bg-light text-dark border" th:text="'Sem ' + ${slot.semester}">Sem 5</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+</div>
+<div th:replace="~{fragments/layout :: scripts}"></div>
+<script th:inline="javascript">
+    const subLabels = /*[[${subjectLabels}]]*/ [];
+    const subAtt = /*[[${subjectAvgAttendance}]]*/ [];
+    const subMarks = /*[[${subjectAvgMarks}]]*/ [];
+
+    new Chart(document.getElementById('facultySubjectChart'), {
+        type: 'bar',
+        data: {
+            labels: subLabels,
+            datasets: [
+                { label: 'Avg Attendance %', data: subAtt, backgroundColor: '#1d5d9b', borderRadius: 6 },
+                { label: 'Avg Marks %', data: subMarks, backgroundColor: '#15803d', borderRadius: 6 }
+            ]
+        },
+        options: {
+            responsive: true,
+            scales: { y: { beginAtZero: true, max: 100 } }
+        }
+    });
+</script>
+</body>
+</html>
+

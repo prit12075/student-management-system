@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head th:replace="~{fragments/layout :: head('Faculty Management')}"></head>
+<body>
+<div class="erp-wrapper">
+    <aside th:replace="~{fragments/layout :: adminSidebar('faculty')}"></aside>
+
+    <div class="erp-main">
+        <header th:replace="~{fragments/layout :: topbar('Faculty & Academic Staff Management', 'Add, Update, Remove Faculty & Assign Teachers to Subjects and Classes')}"></header>
+
+        <main class="erp-content">
+            <div th:replace="~{fragments/layout :: flashMessages}"></div>
+
+            <!-- Search & Quick Assign Row -->
+            <div class="row g-3 mb-4">
+                <div class="col-lg-7">
+                    <div class="erp-card mb-0 h-100">
+                        <div class="p-3">
+                            <form th:action="@{/admin/faculty}" method="get" class="row g-2 align-items-end">
+                                <div class="col-md-5">
+                                    <label class="form-label small fw-semibold text-secondary mb-1">Search Name, Emp ID, Specialization</label>
+                                    <input type="text" name="keyword" class="form-control form-control-sm"
+                                           th:value="${keyword}" placeholder="e.g. FAC-2026-001 or Rajesh...">
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label small fw-semibold text-secondary mb-1">Department</label>
+                                    <select name="departmentId" class="form-select form-select-sm">
+                                        <option value="">All Departments</option>
+                                        <option th:each="d : ${departments}" th:value="${d.id}"
+                                                th:text="${d.code + ' - ' + d.name}"
+                                                th:selected="${selectedDepartmentId != null and selectedDepartmentId == d.id}"></option>
+                                    </select>
+                                </div>
+                                <div class="col-md-3 d-flex gap-2">
+                                    <button type="submit" class="btn btn-sm btn-primary px-3">Filter</button>
+                                    <a th:href="@{/admin/faculty}" class="btn btn-sm btn-outline-secondary">Reset</a>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quick Assign Teacher to Subject & Class Section -->
+                <div class="col-lg-5">
+                    <div class="erp-card mb-0 h-100">
+                        <div class="p-3">
+                            <form th:action="@{/admin/subjects/assign-faculty}" method="post" class="row g-2 align-items-end">
+                                <input type="hidden" name="returnPage" value="faculty">
+                                <div class="col-md-5">
+                                    <label class="form-label small fw-semibold text-primary mb-1">
+                                        <i class="bi bi-link-45deg"></i> Assign Subject
+                                    </label>
+                                    <select name="subjectId" class="form-select form-select-sm" required>
+                                        <option th:each="sub : ${allSubjects}" th:value="${sub.id}"
+                                                th:text="${sub.code + ' - ' + sub.name}"></option>
+                                    </select>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label small fw-semibold text-primary mb-1">To Faculty</label>
+                                    <select name="facultyId" class="form-select form-select-sm">
+                                        <option value="">-- Unassign --</option>
+                                        <option th:each="f : ${facultyList}" th:value="${f.id}"
+                                                th:text="${f.fullName + ' (' + f.department.code + ')'}"></option>
+                                    </select>
+                                </div>
+                                <div class="col-md-3">
+                                    <button type="submit" class="btn btn-sm btn-dark w-100">Assign</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row g-4">
+                <!-- Left Column: Add / Edit Faculty Form -->
+                <div class="col-lg-4">
+                    <div class="erp-card mb-0">
+                        <div class="erp-card-header">
+                            <h2 class="erp-card-title">
+                                <i class="bi bi-person-plus-fill text-primary"></i>
+                                <span th:text="${editFaculty.id != null ? 'Update Faculty (' + editFaculty.employeeId + ')' : 'Add New Faculty'}">Add Faculty</span>
+                            </h2>
+                            <a th:if="${editFaculty.id != null}" th:href="@{/admin/faculty}" class="btn btn-sm btn-outline-secondary">Cancel</a>
+                        </div>
+                        <div class="p-3">
+                            <form th:action="@{/admin/faculty/save}" method="post" class="row g-2">
+                                <input type="hidden" name="id" th:value="${editFaculty.id}">
+
+                                <div class="col-6">
+                                    <label class="form-label small fw-semibold mb-1">Employee ID *</label>
+                                    <input type="text" name="employeeId" class="form-control form-control-sm"
+                                           th:value="${editFaculty.employeeId}" placeholder="FAC-2026-005" required>
+                                </div>
+                                <div class="col-6">
+                                    <label class="form-label small fw-semibold mb-1">Department *</label>
+                                    <select name="departmentId" class="form-select form-select-sm" required>
+                                        <option th:each="d : ${departments}" th:value="${d.id}"
+                                                th:text="${d.code + ' - ' + d.name}"
+                                                th:selected="${editFaculty.department != null and editFaculty.department.id == d.id}"></option>
+                                    </select>
+                                </div>
+
+                                <div class="col-6">
+                                    <label class="form-label small fw-semibold mb-1">First Name *</label>
+                                    <input type="text" name="firstName" class="form-control form-control-sm"
+                                           th:value="${editFaculty.firstName}" required>
+                                </div>
+                                <div class="col-6">
+                                    <label class="form-label small fw-semibold mb-1">Last Name *</label>
+                                    <input type="text" name="lastName" class="form-control form-control-sm"
+                                           th:value="${editFaculty.lastName}" required>
+                                </div>
+
+                                <div class="col-12">
+                                    <label class="form-label small fw-semibold mb-1">Official Email *</label>
+                                    <input type="email" name="email" class="form-control form-control-sm"
+                                           th:value="${editFaculty.email}" placeholder="faculty@apexuniversity.edu" required>
+                                </div>
+
+                                <div class="col-6">
+                                    <label class="form-label small fw-semibold mb-1">Phone</label>
+                                    <input type="text" name="phone" class="form-control form-control-sm"
+                                           th:value="${editFaculty.phone}">
+                                </div>
+                                <div class="col-6">
+                                    <label class="form-label small fw-semibold mb-1">Joining Date</label>
+                                    <input type="date" name="joiningDate" class="form-control form-control-sm"
+                                           th:value="${editFaculty.joiningDate != null ? editFaculty.joiningDate : '2022-07-01'}">
+                                </div>
+
+                                <div class="col-6">
+                                    <label class="form-label small fw-semibold mb-1">Designation *</label>
+                                    <select name="designation" class="form-select form-select-sm">
+                                        <option value="Professor & HOD" th:selected="${editFaculty.designation == 'Professor & HOD'}">Professor &amp; HOD</option>
+                                        <option value="Professor" th:selected="${editFaculty.designation == 'Professor'}">Professor</option>
+                                        <option value="Associate Professor" th:selected="${editFaculty.designation == 'Associate Professor'}">Associate Professor</option>
+                                        <option value="Assistant Professor" th:selected="${editFaculty.designation == 'Assistant Professor'}">Assistant Professor</option>
+                                    </select>
+                                </div>
+                                <div class="col-6">
+                                    <label class="form-label small fw-semibold mb-1">Qualification</label>
+                                    <input type="text" name="qualification" class="form-control form-control-sm"
+                                           th:value="${editFaculty.qualification}" placeholder="Ph.D. Computer Science">
+                                </div>
+
+                                <div class="col-12">
+                                    <label class="form-label small fw-semibold mb-1">Specialization Area</label>
+                                    <input type="text" name="specialization" class="form-control form-control-sm"
+                                           th:value="${editFaculty.specialization}" placeholder="AI, Cloud Computing, DBMS">
+                                </div>
+
+                                <div class="col-12">
+                                    <label class="form-label small fw-semibold mb-1">Portal Password (BCrypt)</label>
+                                    <input type="password" name="password" class="form-control form-control-sm"
+                                           placeholder="Default: faculty123 (leave blank to keep)">
+                                </div>
+
+                                <div class="col-12 mt-3">
+                                    <button type="submit" class="btn btn-primary btn-sm w-100 fw-bold py-2">
+                                        <i class="bi bi-check2-circle me-1"></i>
+                                        <span th:text="${editFaculty.id != null ? 'Update Faculty Record' : 'Register Faculty & Create Login'}">Save</span>
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right Column: Faculty Directory Table -->
+                <div class="col-lg-8">
+                    <div class="erp-card mb-0">
+                        <div class="erp-card-header">
+                            <h2 class="erp-card-title">
+                                <i class="bi bi-person-lines-fill text-primary"></i>
+                                University Faculty Directory (<span th:text="${#lists.size(facultyList)}">0</span>)
+                            </h2>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="table table-hover table-erp mb-0">
+                                <thead>
+                                <tr>
+                                    <th>Emp ID</th>
+                                    <th>Faculty Member</th>
+                                    <th>Dept & Designation</th>
+                                    <th>Assigned Subjects & Classes</th>
+                                    <th class="text-end">Actions</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                <tr th:each="f : ${facultyList}">
+                                    <td>
+                                        <span class="fw-bold text-primary" th:text="${f.employeeId}">FAC-001</span>
+                                        <div class="text-muted" style="font-size: 0.72rem;" th:text="'Login: ' + ${f.user.username}">faculty1</div>
+                                    </td>
+                                    <td>
+                                        <div class="fw-semibold" th:text="'Dr. ' + ${f.fullName}">Dr. Rajesh Verma</div>
+                                        <div class="text-muted small" th:text="${f.email}">email</div>
+                                        <div class="text-muted" style="font-size: 0.75rem;" th:text="${f.qualification + ' • ' + f.specialization}">Ph.D.</div>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-primary bg-opacity-10 text-primary fw-bold" th:text="${f.department.code}">CSE</span>
+                                        <div class="small text-dark fw-medium mt-1" th:text="${f.designation}">Professor</div>
+                                    </td>
+                                    <td>
+                                        <div th:each="sub : ${assignedSubjectsMap[f.id]}" class="mb-1">
+                                            <span class="badge badge-soft-primary"
+                                                  th:text="${sub.code + ' (Sem ' + sub.semester + '-' + sub.section + ')'}">CS501</span>
+                                            <span class="small text-muted" th:text="${sub.name}">Subject</span>
+                                        </div>
+                                        <span th:if="${#lists.isEmpty(assignedSubjectsMap[f.id])}" class="text-muted small fst-italic">No subjects assigned</span>
+                                    </td>
+                                    <td class="text-end">
+                                        <div class="d-inline-flex gap-1">
+                                            <a th:href="@{/admin/faculty(editId=${f.id})}" class="btn btn-sm btn-outline-secondary" title="Edit">
+                                                <i class="bi bi-pencil-square"></i>
+                                            </a>
+                                            <form th:action="@{/admin/faculty/delete/{id}(id=${f.id})}" method="post" class="d-inline"
+                                                  onsubmit="return confirm('Remove this faculty member from the directory?');">
+                                                <button type="submit" class="btn btn-sm btn-outline-danger" title="Remove">
+                                                    <i class="bi bi-trash"></i>
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </td>
+                                </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+</div>
+<div th:replace="~{fragments/layout :: scripts}"></div>
+</body>
+</html>
+

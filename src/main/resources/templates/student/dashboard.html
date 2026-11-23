@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head th:replace="~{fragments/layout :: head('Student Dashboard')}"></head>
+<body>
+<div class="erp-wrapper">
+    <aside th:replace="~{fragments/layout :: studentSidebar('dashboard')}"></aside>
+
+    <div class="erp-main">
+        <header th:replace="~{fragments/layout :: topbar('Student Academic Portal', currentStudent.fullName + ' (' + currentStudent.rollNumber + ') • ' + currentStudent.course.name + ' • Semester ' + currentStudent.semester)}"></header>
+
+        <main class="erp-content">
+            <!-- Prominent Low Attendance (<75%) Alert Banner -->
+            <div th:if="${performance.lowAttendanceAlert}" class="low-attendance-banner d-flex flex-wrap align-items-center justify-content-between gap-3">
+                <div class="d-flex align-items-center gap-3">
+                    <i class="bi bi-exclamation-triangle-fill fs-1"></i>
+                    <div>
+                        <div class="fw-bold fs-5">CRITICAL ACADEMIC ALERT: ATTENDANCE BELOW 75%</div>
+                        <div class="small opacity-90">
+                            Your overall attendance (<strong th:text="${performance.attendancePercentage + '%'}">60%</strong>) or subject attendance is below the mandatory 75% threshold required for End-Semester Examinations.
+                        </div>
+                    </div>
+                </div>
+                <a th:href="@{/student/attendance}" class="btn btn-light btn-sm fw-bold text-danger px-3">
+                    View Shortfall Details &rarr;
+                </a>
+            </div>
+
+            <!-- KPI Cards -->
+            <div class="row g-3 mb-4">
+                <div class="col-sm-6 col-xl-3">
+                    <div class="erp-stat-card" th:classappend="${performance.lowAttendanceAlert} ? 'stat-danger' : 'stat-success'">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <div class="text-muted small fw-semibold text-uppercase">Overall Attendance</div>
+                                <div class="h3 fw-bold mb-1 mt-1"
+                                     th:classappend="${performance.lowAttendanceAlert} ? 'text-danger' : 'text-success'"
+                                     th:text="${performance.attendancePercentage + '%'}">90%</div>
+                                <span class="small text-muted" th:text="${performance.presentClasses + ' / ' + performance.totalClasses + ' Classes Attended'}">45/50</span>
+                            </div>
+                            <div class="erp-stat-icon bg-primary bg-opacity-10 text-primary">
+                                <i class="bi bi-person-check-fill"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-sm-6 col-xl-3">
+                    <div class="erp-stat-card">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <div class="text-muted small fw-semibold text-uppercase">Current SGPA</div>
+                                <div class="h3 fw-bold text-primary mb-1 mt-1" th:text="${performance.sgpa + ' / 10'}">9.2</div>
+                                <span class="small text-muted" th:text="'Aggregate: ' + ${performance.averagePercentage} + '% (' + ${performance.overallGrade} + ')'">88%</span>
+                            </div>
+                            <div class="erp-stat-icon bg-info bg-opacity-10 text-info">
+                                <i class="bi bi-award-fill"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-sm-6 col-xl-3">
+                    <div class="erp-stat-card stat-warning">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <div class="text-muted small fw-semibold text-uppercase">Subjects &amp; Credits</div>
+                                <div class="h3 fw-bold mb-1 mt-1" th:text="${performance.subjectsPassed + ' / ' + performance.subjectsEvaluated + ' Passed'}">5 / 5</div>
+                                <a th:href="@{/student/academics}" class="small text-decoration-none fw-semibold" th:text="${#lists.size(assignments) + ' Active Assignments'}">Assignments</a>
+                            </div>
+                            <div class="erp-stat-icon bg-warning bg-opacity-10 text-warning">
+                                <i class="bi bi-journal-code"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-sm-6 col-xl-3">
+                    <div class="erp-stat-card stat-success">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <div class="text-muted small fw-semibold text-uppercase">Official Transcript</div>
+                                <div class="h5 fw-bold mb-2 mt-1">PDF Marksheet</div>
+                                <a th:href="@{/student/reports/marksheet/pdf}" class="btn btn-sm btn-primary py-1 px-3">
+                                    <i class="bi bi-file-earmark-pdf-fill me-1"></i>Download PDF
+                                </a>
+                            </div>
+                            <div class="erp-stat-icon bg-success bg-opacity-10 text-success">
+                                <i class="bi bi-file-earmark-check-fill"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Interactive Charts Row -->
+            <div class="row g-4 mb-4">
+                <div class="col-lg-6">
+                    <div class="erp-card h-100 mb-0">
+                        <div class="erp-card-header">
+                            <h2 class="erp-card-title">
+                                <i class="bi bi-bar-chart-fill text-primary"></i>
+                                Subject-wise Attendance % (Red &lt; 75% Alert)
+                            </h2>
+                            <a th:href="@{/student/attendance}" class="btn btn-sm btn-outline-primary">Full Log</a>
+                        </div>
+                        <div class="p-3">
+                            <canvas id="studentAttChart" height="140"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-lg-6">
+                    <div class="erp-card h-100 mb-0">
+                        <div class="erp-card-header">
+                            <h2 class="erp-card-title">
+                                <i class="bi bi-graph-up-arrow text-primary"></i>
+                                Subject-wise Examination Score (Out of 100)
+                            </h2>
+                            <a th:href="@{/student/marks}" class="btn btn-sm btn-outline-primary">View Grades</a>
+                        </div>
+                        <div class="p-3">
+                            <canvas id="studentMarksChart" height="140"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Upcoming Exams & Notice Board Row -->
+            <div class="row g-4">
+                <div class="col-lg-6">
+                    <div class="erp-card mb-0">
+                        <div class="erp-card-header">
+                            <h2 class="erp-card-title"><i class="bi bi-calendar-event-fill text-primary"></i> Upcoming Examinations</h2>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="table table-erp mb-0">
+                                <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Subject</th>
+                                    <th>Exam Type</th>
+                                    <th>Hall</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                <tr th:each="ex : ${exams}">
+                                    <td class="fw-bold" th:text="${#temporals.format(ex.examDate, 'dd MMM yyyy')}">Date</td>
+                                    <td>
+                                        <span class="fw-bold text-primary" th:text="${ex.subject.code}">CS501</span>
+                                        <span class="small d-block text-muted" th:text="${ex.subject.name}">Algorithms</span>
+                                    </td>
+                                    <td><span class="badge badge-soft-primary" th:text="${ex.examType}">END_SEM</span></td>
+                                    <td th:text="${ex.roomNumber}">HALL-A</td>
+                                </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-lg-6">
+                    <div class="erp-card mb-0">
+                        <div class="erp-card-header">
+                            <h2 class="erp-card-title"><i class="bi bi-megaphone-fill text-primary"></i> Official University Notices</h2>
+                        </div>
+                        <div class="p-3">
+                            <div th:each="n : ${notices}" class="border-bottom pb-2 mb-2">
+                                <div class="d-flex justify-content-between align-items-center mb-1">
+                                    <div>
+                                        <span th:if="${n.pinned}" class="badge bg-danger me-1">PINNED</span>
+                                        <span class="badge badge-soft-primary" th:text="${n.category}">ACADEMIC</span>
+                                    </div>
+                                    <small class="text-muted" th:text="${#temporals.format(n.publishedDate, 'dd MMM yyyy')}">Date</small>
+                                </div>
+                                <div class="fw-bold small text-dark" th:text="${n.title}">Title</div>
+                                <div class="text-muted small" th:text="${n.content}">Content</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+</div>
+<div th:replace="~{fragments/layout :: scripts}"></div>
+<script th:inline="javascript">
+    const attLabels = /*[[${subjectLabels}]]*/ [];
+    const attValues = /*[[${subjectAttendanceList}]]*/ [];
+    const markLabels = /*[[${markSubjectLabels}]]*/ [];
+    const markValues = /*[[${markTotals}]]*/ [];
+
+    new Chart(document.getElementById('studentAttChart'), {
+        type: 'bar',
+        data: {
+            labels: attLabels,
+            datasets: [{
+                label: 'Attendance %',
+                data: attValues,
+                backgroundColor: attValues.map(v => v < 75 ? '#dc2626' : '#15803d'),
+                borderRadius: 6
+            }]
+        },
+        options: {
+            responsive: true,
+            scales: { y: { beginAtZero: true, max: 100 } }
+        }
+    });
+
+    new Chart(document.getElementById('studentMarksChart'), {
+        type: 'bar',
+        data: {
+            labels: markLabels,
+            datasets: [{
+                label: 'Total Marks (out of 100)',
+                data: markValues,
+                backgroundColor: '#1d5d9b',
+                borderRadius: 6
+            }]
+        },
+        options: {
+            responsive: true,
+            scales: { y: { beginAtZero: true, max: 100 } }
+        }
+    });
+</script>
+</body>
+</html>
+

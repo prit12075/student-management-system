@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head th:replace="~{fragments/layout :: head('Departments, Courses & Subjects')}"></head>
+<body>
+<div class="erp-wrapper">
+    <aside th:replace="~{fragments/layout :: adminSidebar('academics')}"></aside>
+
+    <div class="erp-main">
+        <header th:replace="~{fragments/layout :: topbar('Departments, Courses & Subjects Management', 'Configure Academic Structure & Assign Teachers to Subjects and Classes')}"></header>
+
+        <main class="erp-content">
+            <div th:replace="~{fragments/layout :: flashMessages}"></div>
+
+            <!-- Row 1: Departments & Courses -->
+            <div class="row g-4 mb-4">
+                <!-- Departments Card -->
+                <div class="col-lg-6">
+                    <div class="erp-card h-100 mb-0">
+                        <div class="erp-card-header">
+                            <h2 class="erp-card-title"><i class="bi bi-building-fill text-primary"></i> University Departments</h2>
+                        </div>
+                        <div class="p-3 border-bottom bg-light">
+                            <form th:action="@{/admin/departments/save}" method="post" class="row g-2">
+                                <div class="col-3">
+                                    <input type="text" name="code" class="form-control form-control-sm" placeholder="Code (IT)" required>
+                                </div>
+                                <div class="col-5">
+                                    <input type="text" name="name" class="form-control form-control-sm" placeholder="Department Name" required>
+                                </div>
+                                <div class="col-4">
+                                    <input type="text" name="headOfDepartment" class="form-control form-control-sm" placeholder="HOD Name">
+                                </div>
+                                <div class="col-8">
+                                    <input type="text" name="coursesOffered" class="form-control form-control-sm" placeholder="Programmes (B.Tech, M.Tech)">
+                                </div>
+                                <div class="col-4">
+                                    <button type="submit" class="btn btn-sm btn-primary w-100"><i class="bi bi-plus-lg me-1"></i>Save Dept</button>
+                                </div>
+                            </form>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="table table-erp mb-0">
+                                <thead>
+                                <tr>
+                                    <th>Code</th>
+                                    <th>Department</th>
+                                    <th>HOD</th>
+                                    <th>Action</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                <tr th:each="d : ${departments}">
+                                    <td><span class="badge bg-primary" th:text="${d.code}">CSE</span></td>
+                                    <td>
+                                        <div class="fw-semibold" th:text="${d.name}">Computer Science</div>
+                                        <div class="text-muted small" th:text="${d.coursesOffered}">B.Tech</div>
+                                    </td>
+                                    <td class="small" th:text="${d.headOfDepartment}">Dr. Verma</td>
+                                    <td>
+                                        <form th:action="@{/admin/departments/delete/{id}(id=${d.id})}" method="post"
+                                              onsubmit="return confirm('Delete this department?');">
+                                            <button type="submit" class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button>
+                                        </form>
+                                    </td>
+                                </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Courses & Semesters Card -->
+                <div class="col-lg-6">
+                    <div class="erp-card h-100 mb-0">
+                        <div class="erp-card-header">
+                            <h2 class="erp-card-title"><i class="bi bi-journal-bookmark-fill text-primary"></i> Academic Courses & Semesters</h2>
+                        </div>
+                        <div class="p-3 border-bottom bg-light">
+                            <form th:action="@{/admin/courses/save}" method="post" class="row g-2">
+                                <div class="col-4">
+                                    <input type="text" name="code" class="form-control form-control-sm" placeholder="Code (BTECH-IT)" required>
+                                </div>
+                                <div class="col-8">
+                                    <input type="text" name="name" class="form-control form-control-sm" placeholder="Course Title" required>
+                                </div>
+                                <div class="col-5">
+                                    <select name="departmentId" class="form-select form-select-sm" required>
+                                        <option th:each="d : ${departments}" th:value="${d.id}" th:text="${d.code + ' - ' + d.name}"></option>
+                                    </select>
+                                </div>
+                                <div class="col-3">
+                                    <input type="number" name="totalSemesters" class="form-control form-control-sm" value="8" placeholder="Semesters">
+                                </div>
+                                <div class="col-4">
+                                    <button type="submit" class="btn btn-sm btn-primary w-100"><i class="bi bi-plus-lg me-1"></i>Save Course</button>
+                                </div>
+                            </form>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="table table-erp mb-0">
+                                <thead>
+                                <tr>
+                                    <th>Code</th>
+                                    <th>Course Title</th>
+                                    <th>Dept</th>
+                                    <th>Semesters</th>
+                                    <th>Action</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                <tr th:each="c : ${courses}">
+                                    <td class="fw-bold text-primary" th:text="${c.code}">BTECH-CSE</td>
+                                    <td class="fw-semibold" th:text="${c.name}">B.Tech CSE</td>
+                                    <td><span class="badge badge-soft-primary" th:text="${c.department.code}">CSE</span></td>
+                                    <td th:text="${c.totalSemesters + ' Sem (' + c.durationYears + ' Yrs)'}">8 Sem</td>
+                                    <td>
+                                        <form th:action="@{/admin/courses/delete/{id}(id=${c.id})}" method="post"
+                                              onsubmit="return confirm('Delete this course?');">
+                                            <button type="submit" class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button>
+                                        </form>
+                                    </td>
+                                </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Row 2: Subjects & Teacher Assignment -->
+            <div class="erp-card mb-0">
+                <div class="erp-card-header">
+                    <h2 class="erp-card-title">
+                        <i class="bi bi-book-half text-primary"></i>
+                        Subjects Curriculum & Teacher Class Assignment
+                    </h2>
+                </div>
+                <div class="p-3 border-bottom bg-light">
+                    <form th:action="@{/admin/subjects/save}" method="post" class="row g-2 align-items-end">
+                        <div class="col-md-2">
+                            <label class="form-label small fw-semibold mb-1">Subject Code *</label>
+                            <input type="text" name="code" class="form-control form-control-sm" placeholder="CS506" required>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label small fw-semibold mb-1">Subject Name *</label>
+                            <input type="text" name="name" class="form-control form-control-sm" placeholder="Cloud Computing" required>
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label small fw-semibold mb-1">Department *</label>
+                            <select name="departmentId" class="form-select form-select-sm" required>
+                                <option th:each="d : ${departments}" th:value="${d.id}" th:text="${d.code}"></option>
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label small fw-semibold mb-1">Course *</label>
+                            <select name="courseId" class="form-select form-select-sm" required>
+                                <option th:each="c : ${courses}" th:value="${c.id}" th:text="${c.code}"></option>
+                            </select>
+                        </div>
+                        <div class="col-md-1">
+                            <label class="form-label small fw-semibold mb-1">Sem</label>
+                            <input type="number" name="semester" class="form-control form-control-sm" value="5" min="1" max="8">
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label small fw-semibold mb-1">Assign Teacher</label>
+                            <select name="facultyId" class="form-select form-select-sm">
+                                <option value="">-- Select --</option>
+                                <option th:each="f : ${facultyList}" th:value="${f.id}" th:text="${f.fullName}"></option>
+                            </select>
+                        </div>
+                        <div class="col-md-12 d-flex justify-content-end mt-2">
+                            <button type="submit" class="btn btn-sm btn-primary px-4">
+                                <i class="bi bi-plus-circle me-1"></i>Add / Update Subject & Assign Faculty
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+                <div class="table-responsive">
+                    <table class="table table-hover table-erp mb-0">
+                        <thead>
+                        <tr>
+                            <th>Code</th>
+                            <th>Subject Title</th>
+                            <th>Dept / Course</th>
+                            <th>Sem / Section</th>
+                            <th>Credits & Type</th>
+                            <th>Assigned Faculty (Reassign Inline)</th>
+                            <th>Action</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr th:each="sub : ${subjects}">
+                            <td class="fw-bold text-primary" th:text="${sub.code}">CS501</td>
+                            <td class="fw-semibold" th:text="${sub.name}">Algorithms</td>
+                            <td>
+                                <span class="badge bg-secondary" th:text="${sub.department.code}">CSE</span>
+                                <span class="small text-muted ms-1" th:text="${sub.course.code}">BTECH-CSE</span>
+                            </td>
+                            <td th:text="'Sem ' + ${sub.semester} + ' (Sec ' + ${sub.section} + ')'">Sem 5 (A)</td>
+                            <td>
+                                <span class="badge badge-soft-primary" th:text="${sub.credits + ' Cr • ' + sub.subjectType}">4 Cr</span>
+                            </td>
+                            <td>
+                                <form th:action="@{/admin/subjects/assign-faculty}" method="post" class="d-flex gap-1 align-items-center">
+                                    <input type="hidden" name="subjectId" th:value="${sub.id}">
+                                    <input type="hidden" name="section" th:value="${sub.section}">
+                                    <input type="hidden" name="returnPage" value="academics">
+                                    <select name="facultyId" class="form-select form-select-sm" style="max-width: 210px;">
+                                        <option value="">-- Unassigned --</option>
+                                        <option th:each="f : ${facultyList}" th:value="${f.id}"
+                                                th:text="${'Dr. ' + f.fullName + ' (' + f.department.code + ')'}"
+                                                th:selected="${sub.assignedFaculty != null and sub.assignedFaculty.id == f.id}"></option>
+                                    </select>
+                                    <button type="submit" class="btn btn-sm btn-outline-primary">Save</button>
+                                </form>
+                            </td>
+                            <td>
+                                <form th:action="@{/admin/subjects/delete/{id}(id=${sub.id})}" method="post"
+                                      onsubmit="return confirm('Delete this subject and its attendance/marks records?');">
+                                    <button type="submit" class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button>
+                                </form>
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+    </div>
+</div>
+<div th:replace="~{fragments/layout :: scripts}"></div>
+</body>
+</html>
+

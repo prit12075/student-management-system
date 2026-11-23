@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head th:replace="~{fragments/layout :: head('Exam Hall Ticket')}"></head>
+<body>
+<div class="erp-wrapper">
+    <aside th:replace="~{fragments/layout :: studentSidebar('hallticket')}"></aside>
+    <div class="erp-main">
+        <header th:replace="~{fragments/layout :: topbar('End-Semester Exam Hall Ticket', 'Issued only when attendance is at least 75% overall and in every subject')}"></header>
+        <main class="erp-content">
+            <div class="d-flex justify-content-end mb-3 no-print">
+                <button class="btn btn-primary btn-sm" onclick="window.print()"><i class="bi bi-printer-fill me-1"></i>Print hall ticket</button>
+            </div>
+            <div class="hall-ticket p-4">
+                <div class="d-flex justify-content-between align-items-start border-bottom pb-3 mb-3">
+                    <div>
+                        <div class="h4 fw-bold mb-0 text-primary">APEX UNIVERSITY</div>
+                        <div class="text-muted small">Office of the Controller of Examinations</div>
+                        <div class="fw-semibold mt-2">ADMIT CARD — END SEMESTER EXAMINATION</div>
+                    </div>
+                    <div class="text-end small">
+                        <div class="badge bg-success fs-6 mb-2"><i class="bi bi-patch-check-fill me-1"></i>ELIGIBLE</div>
+                        <div th:text="'Issued: ' + ${issuedOn}">date</div>
+                    </div>
+                </div>
+                <div class="row g-3 mb-3">
+                    <div class="col-md-6">
+                        <table class="table table-sm table-borderless mb-0">
+                            <tr><th class="text-muted">Name</th><td class="fw-bold" th:text="${currentStudent.fullName}">name</td></tr>
+                            <tr><th class="text-muted">Roll number</th><td class="fw-bold" th:text="${currentStudent.rollNumber}">roll</td></tr>
+                            <tr><th class="text-muted">Programme</th><td th:text="${currentStudent.course.name}">course</td></tr>
+                        </table>
+                    </div>
+                    <div class="col-md-6">
+                        <table class="table table-sm table-borderless mb-0">
+                            <tr><th class="text-muted">Department</th><td th:text="${currentStudent.department.name}">dept</td></tr>
+                            <tr><th class="text-muted">Semester / Section</th><td th:text="${currentStudent.semester} + ' / ' + ${currentStudent.section}">5/A</td></tr>
+                            <tr><th class="text-muted">Overall attendance</th><td class="fw-bold text-success" th:text="${performance.attendancePercentage} + '%'">90%</td></tr>
+                            <tr><th class="text-muted">Exam seat</th><td class="fw-bold text-primary" th:text="${seat != null} ? ${seat.label()} : 'To be allotted'">HALL-1 A1</td></tr>
+                        </table>
+                    </div>
+                </div>
+                <table class="table table-bordered table-sm align-middle">
+                    <thead class="table-light"><tr><th>Subject</th><th>Attendance</th><th>Classes</th></tr></thead>
+                    <tbody>
+                    <tr th:each="s : ${subjects}">
+                        <td th:text="${s.subject.code + ' — ' + s.subject.name}">sub</td>
+                        <td class="fw-semibold text-success" th:text="${s.attendancePercentage} + '%'">90%</td>
+                        <td th:text="${s.presentCount} + ' / ' + ${s.totalClasses}">9/10</td>
+                    </tr>
+                    </tbody>
+                </table>
+                <div class="fw-semibold mt-3 mb-1">Examination schedule</div>
+                <table class="table table-bordered table-sm">
+                    <thead class="table-light"><tr><th>Exam</th><th>Subject</th><th>Date</th><th>Time</th><th>Room</th></tr></thead>
+                    <tbody>
+                    <tr th:each="e : ${exams}">
+                        <td th:text="${e.name}">exam</td>
+                        <td th:text="${e.subject != null ? e.subject.code : '-'}">sub</td>
+                        <td th:text="${e.examDate}">date</td>
+                        <td th:text="${e.startTime} + ' – ' + ${e.endTime}">time</td>
+                        <td th:text="${e.roomNumber}">room</td>
+                    </tr>
+                    <tr th:if="${#lists.isEmpty(exams)}"><td colspan="5" class="text-muted text-center">Schedule will be announced.</td></tr>
+                    </tbody>
+                </table>
+                <div class="d-flex justify-content-between mt-4 small text-muted">
+                    <span>Carry this admit card and your university ID to every exam. Marksheet verification code: <span class="font-monospace fw-bold" th:text="${verificationCode}">code</span></span>
+                    <span class="fw-semibold">Controller of Examinations</span>
+                </div>
+            </div>
+        </main>
+    </div>
+</div>
+<div th:replace="~{fragments/layout :: scripts}"></div>
+</body>
+</html>

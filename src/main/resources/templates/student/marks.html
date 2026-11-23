@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head th:replace="~{fragments/layout :: head('Examination Marks & Results')}"></head>
+<body>
+<div class="erp-wrapper">
+    <aside th:replace="~{fragments/layout :: studentSidebar('marks')}"></aside>
+
+    <div class="erp-main">
+        <header th:replace="~{fragments/layout :: topbar('Examination Marks, Grades & Official Transcript', 'Internal Exams, Assignments, Practicals & End-Semester Results')}"></header>
+
+        <main class="erp-content">
+            <div class="alert alert-success d-flex align-items-center gap-3 border-0 shadow-sm">
+                <i class="bi bi-shield-lock-fill fs-4"></i>
+                <div>
+                    <div class="fw-bold">Marksheet verification code: <span class="font-monospace" th:text="${verificationCode}">XXXX</span></div>
+                    <div class="small">Printed on your PDF marksheet. Anyone can confirm it is genuine at <a th:href="@{/verify(roll=${currentStudent.rollNumber},code=${verificationCode})}" target="_blank">/verify</a>.</div>
+                </div>
+            </div>
+            <!-- Summary Header Card -->
+            <div class="erp-card">
+                <div class="p-4 d-flex flex-wrap justify-content-between align-items-center gap-3">
+                    <div>
+                        <span class="badge badge-soft-primary mb-1" th:text="${currentStudent.course.name + ' • Semester ' + currentStudent.semester}">B.Tech CSE</span>
+                        <h2 class="h5 fw-bold mb-1" th:text="${currentStudent.fullName + ' (' + currentStudent.rollNumber + ')'}">Student</h2>
+                        <div class="small text-muted">
+                            Department of <span th:text="${currentStudent.department.name}">CSE</span> • Academic Session 2026-2027
+                        </div>
+                    </div>
+
+                    <div class="d-flex flex-wrap align-items-center gap-4">
+                        <div class="text-center px-3 border-end">
+                            <div class="text-muted small fw-semibold">SGPA</div>
+                            <div class="h4 fw-bold text-primary mb-0" th:text="${performance.sgpa}">9.2</div>
+                        </div>
+                        <div class="text-center px-3 border-end">
+                            <div class="text-muted small fw-semibold">Aggregate %</div>
+                            <div class="h4 fw-bold text-dark mb-0" th:text="${performance.averagePercentage + '%'}">88.5%</div>
+                        </div>
+                        <div class="text-center px-3 border-end">
+                            <div class="text-muted small fw-semibold">Overall Grade</div>
+                            <div class="h4 fw-bold text-success mb-0" th:text="${performance.overallGrade}">A+</div>
+                        </div>
+                        <div>
+                            <a th:href="@{/student/reports/marksheet/pdf}" class="btn btn-primary fw-bold px-4 py-2 shadow-sm">
+                                <i class="bi bi-file-earmark-pdf-fill me-2"></i>Download Official PDF Marksheet
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Detailed Subject Marks Table -->
+            <div class="erp-card mb-0">
+                <div class="erp-card-header">
+                    <h2 class="erp-card-title">
+                        <i class="bi bi-award-fill text-primary"></i>
+                        Subject-wise Statement of Marks
+                    </h2>
+                    <span class="small text-muted">Max Marks Breakdown: Internal (30) + Assignment (20) + Practical (20) + External (30) = 100</span>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-hover table-erp mb-0">
+                        <thead>
+                        <tr>
+                            <th>Code</th>
+                            <th>Subject Title</th>
+                            <th>Credits</th>
+                            <th>Internal (30)</th>
+                            <th>Assign (20)</th>
+                            <th>Practical (20)</th>
+                            <th>External (30)</th>
+                            <th>Total (100)</th>
+                            <th>Grade &amp; GP</th>
+                            <th>Result</th>
+                            <th>Remarks</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr th:each="m : ${marks}">
+                            <td class="fw-bold text-primary" th:text="${m.subject.code}">CS501</td>
+                            <td class="fw-semibold" th:text="${m.subject.name}">Algorithms</td>
+                            <td th:text="${m.subject.credits}">4</td>
+                            <td th:text="${m.internalMarks}">28</td>
+                            <td th:text="${m.assignmentMarks}">19</td>
+                            <td th:text="${m.practicalMarks}">19</td>
+                            <td th:text="${m.externalMarks}">27</td>
+                            <td class="fw-bold text-dark" th:text="${m.totalMarks}">93.0</td>
+                            <td>
+                                <span class="fw-bold text-primary" th:text="${m.grade + ' (' + m.gradePoints + ' GP)'}">O (10 GP)</span>
+                            </td>
+                            <td>
+                                <span class="badge"
+                                      th:classappend="${m.resultStatus == 'PASS'} ? 'badge-soft-success' : 'badge-soft-danger'"
+                                      th:text="${m.resultStatus}">PASS</span>
+                            </td>
+                            <td class="small text-muted" th:text="${m.remarks}">Good</td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+    </div>
+</div>
+<div th:replace="~{fragments/layout :: scripts}"></div>
+</body>
+</html>
+

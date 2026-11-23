@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head th:replace="~{fragments/layout :: head('Mark Student Attendance')}"></head>
+<body>
+<div class="erp-wrapper">
+    <aside th:replace="~{fragments/layout :: facultySidebar('attendance')}"></aside>
+
+    <div class="erp-main">
+        <header th:replace="~{fragments/layout :: topbar('Classroom Attendance Register', 'Mark & Update Daily Attendance (Present, Absent, Leave) for Assigned Subjects')}"></header>
+
+        <main class="erp-content">
+            <div th:replace="~{fragments/layout :: flashMessages}"></div>
+
+            <!-- Subject & Date Selector Bar -->
+            <div class="erp-card">
+                <div class="p-3 d-flex flex-wrap justify-content-between align-items-end gap-3">
+                    <form th:action="@{/faculty/attendance}" method="get" class="row g-2 align-items-end flex-grow-1">
+                        <div class="col-md-5">
+                            <label class="form-label small fw-semibold text-secondary mb-1">Select Assigned Subject</label>
+                            <select name="subjectId" class="form-select form-select-sm" onchange="this.form.submit()">
+                                <option th:each="sub : ${assignedSubjects}" th:value="${sub.id}"
+                                        th:text="${sub.code + ' - ' + sub.name + ' (Sem ' + sub.semester + ' Sec ' + sub.section + ')'}"
+                                        th:selected="${selectedSubject != null and selectedSubject.id == sub.id}"></option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label small fw-semibold text-secondary mb-1">Lecture Date</label>
+                            <input type="date" name="date" class="form-control form-control-sm"
+                                   th:value="${selectedDate}" onchange="this.form.submit()">
+                        </div>
+                        <div class="col-md-4 d-flex gap-2">
+                            <button type="submit" class="btn btn-sm btn-primary px-3">Load Register</button>
+                            <a th:if="${selectedSubject != null}"
+                               th:href="@{/faculty/reports/attendance/pdf(subjectId=${selectedSubject.id})}"
+                               class="btn btn-sm btn-outline-danger ms-auto">
+                                <i class="bi bi-file-earmark-pdf-fill me-1"></i>Download Attendance PDF
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <div th:if="${selectedSubject != null}" class="row g-4">
+                <!-- Left Column: Mark / Update Attendance Form -->
+                <div class="col-lg-7">
+                    <div class="erp-card mb-0">
+                        <div class="erp-card-header">
+                            <h2 class="erp-card-title">
+                                <i class="bi bi-calendar2-check-fill text-primary"></i>
+                                Mark Attendance: <span class="text-primary" th:text="${selectedSubject.code}">CS501</span>
+                                on <span th:text="${#temporals.format(selectedDate, 'dd MMM yyyy')}">Date</span>
+                            </h2>
+                            <div class="d-flex gap-1">
+                                <button type="button" class="btn btn-sm btn-outline-success" onclick="setAllAttendanceStatus('PRESENT')">
+                                    Mark All Present
+                                </button>
+                                <button type="button" class="btn btn-sm btn-outline-danger" onclick="setAllAttendanceStatus('ABSENT')">
+                                    All Absent
+                                </button>
+                            </div>
+                        </div>
+
+                        <form th:action="@{/faculty/attendance/save}" method="post">
+                            <input type="hidden" name="subjectId" th:value="${selectedSubject.id}">
+                            <input type="hidden" name="attendanceDate" th:value="${selectedDate}">
+
+                            <div class="table-responsive">
+                                <table class="table table-hover table-erp mb-0">
+                                    <thead>
+                                    <tr>
+                                        <th>Roll No</th>
+                                        <th>Student Name</th>
+                                        <th>Attendance Status (Present / Absent / Leave)</th>
+                                        <th>Remarks</th>
+                                    </tr>
+                                    </thead>
+                                    <tbody>
+                                    <tr th:each="stu : ${enrolledStudents}"
+                                        th:with="existing=${existingAttendanceMap[stu.id]},
+                                                 curStatus=${existing != null ? existing.status.name() : 'PRESENT'},
+                                                 curRemark=${existing != null ? existing.remarks : ''}">
+                                        <td class="fw-bold text-primary" th:text="${stu.rollNumber}">STU001</td>
+                                        <td class="fw-semibold" th:text="${stu.fullName}">Aarav Sharma</td>
+                                        <td>
+                                            <div class="btn-group btn-group-sm" role="group">
+                                                <input type="radio" class="btn-check"
+                                                       th:name="'status_' + ${stu.id}"
+                                                       th:id="'pres_' + ${stu.id}"
+                                                       value="PRESENT"
+                                                       th:checked="${curStatus == 'PRESENT'}">
+                                                <label class="btn btn-outline-success fw-semibold" th:for="'pres_' + ${stu.id}">
+                                                    <i class="bi bi-check-lg"></i> Present
+                                                </label>
+
+                                                <input type="radio" class="btn-check"
+                                                       th:name="'status_' + ${stu.id}"
+                                                       th:id="'abs_' + ${stu.id}"
+                                                       value="ABSENT"
+                                                       th:checked="${curStatus == 'ABSENT'}">
+                                                <label class="btn btn-outline-danger fw-semibold" th:for="'abs_' + ${stu.id}">
+                                                    <i class="bi bi-x-lg"></i> Absent
+                                                </label>
+
+                                                <input type="radio" class="btn-check"
+                                                       th:name="'status_' + ${stu.id}"
+                                                       th:id="'lv_' + ${stu.id}"
+                                                       value="LEAVE"
+                                                       th:checked="${curStatus == 'LEAVE'}">
+                                                <label class="btn btn-outline-warning fw-semibold" th:for="'lv_' + ${stu.id}">
+                                                    <i class="bi bi-clock"></i> Leave
+                                                </label>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <input type="text" class="form-control form-control-sm"
+                                                   th:name="'remarks_' + ${stu.id}"
+                                                   th:value="${curRemark}"
+                                                   placeholder="Optional note...">
+                                        </td>
+                                    </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <div class="p-3 bg-light border-top d-flex justify-content-between align-items-center">
+                                <span class="small text-muted">
+                                    <i class="bi bi-shield-lock me-1"></i>Verified Faculty Assignment: <strong th:text="${currentFaculty.fullName}">Faculty</strong>
+                                </span>
+                                <button type="submit" class="btn btn-primary px-4 fw-bold">
+                                    <i class="bi bi-save2-fill me-1"></i>Save / Update Attendance Register
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Right Column: Cumulative Subject Attendance & <75% Alerts -->
+                <div class="col-lg-5">
+                    <div class="erp-card mb-0">
+                        <div class="erp-card-header">
+                            <h2 class="erp-card-title">
+                                <i class="bi bi-percent text-primary"></i>
+                                Cumulative Attendance &amp; &lt;75% Alert Status
+                            </h2>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="table table-hover table-erp mb-0">
+                                <thead>
+                                <tr>
+                                    <th>Student</th>
+                                    <th>P / Total</th>
+                                    <th>Percentage</th>
+                                    <th>Status</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                <tr th:each="sum : ${attendanceSummaries}">
+                                    <td>
+                                        <div class="fw-bold text-primary small" th:text="${sum.student.rollNumber}">STU001</div>
+                                        <div class="fw-semibold small" th:text="${sum.student.fullName}">Name</div>
+                                    </td>
+                                    <td class="small" th:text="${sum.presentCount + ' / ' + sum.totalClasses + ' (L:' + sum.leaveCount + ')'}">9 / 10</td>
+                                    <td>
+                                        <span class="fw-bold"
+                                              th:classappend="${sum.lowAttendance} ? 'text-danger' : 'text-success'"
+                                              th:text="${sum.attendancePercentage + '%'}">90%</span>
+                                    </td>
+                                    <td>
+                                        <span th:if="${sum.lowAttendance}" class="badge badge-soft-danger">
+                                            <i class="bi bi-exclamation-triangle-fill"></i> &lt;75% ALERT
+                                        </span>
+                                        <span th:unless="${sum.lowAttendance}" class="badge badge-soft-success">
+                                            ELIGIBLE
+                                        </span>
+                                    </td>
+                                </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+</div>
+<div th:replace="~{fragments/layout :: scripts}"></div>
+</body>
+</html>
+

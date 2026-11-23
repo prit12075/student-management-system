@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head th:replace="~{fragments/layout :: head('Timetable & Examinations')}"></head>
+<body>
+<div class="erp-wrapper">
+    <aside th:replace="~{fragments/layout :: adminSidebar('schedule')}"></aside>
+
+    <div class="erp-main">
+        <header th:replace="~{fragments/layout :: topbar('Timetable & Examination Schedule Management', 'Manage Weekly Class Lectures, Labs & University Examination Dates')}"></header>
+
+        <main class="erp-content">
+            <div th:replace="~{fragments/layout :: flashMessages}"></div>
+
+            <!-- Section 1: Weekly Class Timetable -->
+            <div class="erp-card">
+                <div class="erp-card-header">
+                    <h2 class="erp-card-title"><i class="bi bi-calendar-week-fill text-primary"></i> Weekly Class Timetable</h2>
+                </div>
+                <div class="p-3 border-bottom bg-light">
+                    <form th:action="@{/admin/timetable/save}" method="post" class="row g-2 align-items-end">
+                        <div class="col-md-2">
+                            <label class="form-label small fw-semibold mb-1">Day of Week *</label>
+                            <select name="dayOfWeek" class="form-select form-select-sm" required>
+                                <option value="MONDAY">MONDAY</option>
+                                <option value="TUESDAY">TUESDAY</option>
+                                <option value="WEDNESDAY">WEDNESDAY</option>
+                                <option value="THURSDAY">THURSDAY</option>
+                                <option value="FRIDAY">FRIDAY</option>
+                                <option value="SATURDAY">SATURDAY</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label small fw-semibold mb-1">Subject *</label>
+                            <select name="subjectId" class="form-select form-select-sm" required>
+                                <option th:each="s : ${subjects}" th:value="${s.id}" th:text="${s.code + ' - ' + s.name}"></option>
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label small fw-semibold mb-1">Start Time *</label>
+                            <input type="time" name="startTime" class="form-control form-control-sm" value="09:00" required>
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label small fw-semibold mb-1">End Time *</label>
+                            <input type="time" name="endTime" class="form-control form-control-sm" value="10:00" required>
+                        </div>
+                        <div class="col-md-1">
+                            <label class="form-label small fw-semibold mb-1">Room *</label>
+                            <input type="text" name="roomNumber" class="form-control form-control-sm" placeholder="LH-301" required>
+                        </div>
+                        <div class="col-md-2">
+                            <button type="submit" class="btn btn-sm btn-primary w-100"><i class="bi bi-plus-circle me-1"></i>Add Slot</button>
+                        </div>
+                    </form>
+                </div>
+
+                <div class="table-responsive">
+                    <table class="table table-hover table-erp mb-0">
+                        <thead>
+                        <tr>
+                            <th>Day</th>
+                            <th>Time Slot</th>
+                            <th>Subject</th>
+                            <th>Faculty</th>
+                            <th>Dept / Sem</th>
+                            <th>Room / Type</th>
+                            <th>Action</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr th:each="slot : ${timetables}">
+                            <td><span class="badge bg-primary" th:text="${slot.dayOfWeek}">MONDAY</span></td>
+                            <td class="fw-semibold" th:text="${slot.startTime + ' - ' + slot.endTime}">09:00 - 10:00</td>
+                            <td>
+                                <span class="fw-bold text-primary" th:text="${slot.subject.code}">CS501</span>
+                                <span class="ms-1" th:text="${slot.subject.name}">Algorithms</span>
+                            </td>
+                            <td th:text="${slot.subject.assignedFaculty != null ? 'Dr. ' + slot.subject.assignedFaculty.fullName : 'TBA'}">Dr. Verma</td>
+                            <td th:text="${slot.department.code + ' • Sem ' + slot.semester + ' (' + slot.section + ')'}">CSE Sem 5</td>
+                            <td>
+                                <span class="badge bg-light text-dark border" th:text="${slot.roomNumber + ' • ' + slot.slotType}">LH-301</span>
+                            </td>
+                            <td>
+                                <form th:action="@{/admin/timetable/delete/{id}(id=${slot.id})}" method="post">
+                                    <button type="submit" class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button>
+                                </form>
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Section 2: Examination Schedule -->
+            <div class="erp-card mb-0">
+                <div class="erp-card-header">
+                    <h2 class="erp-card-title"><i class="bi bi-journal-check text-primary"></i> University Examination Schedule</h2>
+                </div>
+                <div class="p-3 border-bottom bg-light">
+                    <form th:action="@{/admin/examinations/save}" method="post" class="row g-2 align-items-end">
+                        <div class="col-md-3">
+                            <label class="form-label small fw-semibold mb-1">Exam Title *</label>
+                            <input type="text" name="name" class="form-control form-control-sm" value="End-Semester Examination 2026" required>
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label small fw-semibold mb-1">Type</label>
+                            <select name="examType" class="form-select form-select-sm">
+                                <option value="END_SEM">END_SEM</option>
+                                <option value="INTERNAL">INTERNAL</option>
+                                <option value="PRACTICAL">PRACTICAL</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label small fw-semibold mb-1">Subject *</label>
+                            <select name="subjectId" class="form-select form-select-sm" required>
+                                <option th:each="s : ${subjects}" th:value="${s.id}" th:text="${s.code + ' - ' + s.name}"></option>
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label small fw-semibold mb-1">Exam Date *</label>
+                            <input type="date" name="examDate" class="form-control form-control-sm" required>
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label small fw-semibold mb-1">Hall / Room *</label>
+                            <input type="text" name="roomNumber" class="form-control form-control-sm" value="EXAM-HALL-A" required>
+                        </div>
+                        <input type="hidden" name="startTime" value="09:30">
+                        <input type="hidden" name="endTime" value="12:30">
+                        <div class="col-md-12 d-flex justify-content-end mt-2">
+                            <button type="submit" class="btn btn-sm btn-primary px-4">
+                                <i class="bi bi-calendar-plus me-1"></i>Schedule Examination
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+                <div class="table-responsive">
+                    <table class="table table-hover table-erp mb-0">
+                        <thead>
+                        <tr>
+                            <th>Exam Date</th>
+                            <th>Time</th>
+                            <th>Subject</th>
+                            <th>Examination Name</th>
+                            <th>Exam Type</th>
+                            <th>Room / Hall</th>
+                            <th>Status</th>
+                            <th>Action</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr th:each="exam : ${examinations}">
+                            <td class="fw-bold" th:text="${#temporals.format(exam.examDate, 'dd MMM yyyy')}">22 Nov 2026</td>
+                            <td class="small" th:text="${exam.startTime + ' - ' + exam.endTime}">09:30 - 12:30</td>
+                            <td>
+                                <span class="fw-bold text-primary" th:text="${exam.subject.code}">CS501</span>
+                                <span th:text="${exam.subject.name}">Algorithms</span>
+                            </td>
+                            <td th:text="${exam.name}">End-Semester Exam</td>
+                            <td><span class="badge badge-soft-primary" th:text="${exam.examType}">END_SEM</span></td>
+                            <td th:text="${exam.roomNumber}">EXAM-HALL-A</td>
+                            <td>
+                                <span class="badge"
+                                      th:classappend="${exam.status == 'COMPLETED'} ? 'badge-soft-success' : 'badge-soft-warning'"
+                                      th:text="${exam.status}">UPCOMING</span>
+                            </td>
+                            <td>
+                                <form th:action="@{/admin/examinations/delete/{id}(id=${exam.id})}" method="post">
+                                    <button type="submit" class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button>
+                                </form>
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+    </div>
+</div>
+<div th:replace="~{fragments/layout :: scripts}"></div>
+</body>
+</html>
+

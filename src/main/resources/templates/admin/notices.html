@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head th:replace="~{fragments/layout :: head('Notice Board & Reports')}"></head>
+<body>
+<div class="erp-wrapper">
+    <aside th:replace="~{fragments/layout :: adminSidebar('notices')}"></aside>
+
+    <div class="erp-main">
+        <header th:replace="~{fragments/layout :: topbar('University Notice Board & Official Circulars', 'Publish Announcements, Pin Urgent Advisories & Generate University PDF Reports')}"></header>
+
+        <main class="erp-content">
+            <div th:replace="~{fragments/layout :: flashMessages}"></div>
+
+            <div class="row g-4">
+                <!-- Left Column: Publish Notice Form -->
+                <div class="col-lg-4">
+                    <div class="erp-card">
+                        <div class="erp-card-header">
+                            <h2 class="erp-card-title"><i class="bi bi-megaphone-fill text-primary"></i> Publish Official Notice</h2>
+                        </div>
+                        <div class="p-3">
+                            <form th:action="@{/admin/notices/save}" method="post" class="row g-3">
+                                <div class="col-12">
+                                    <label class="form-label small fw-semibold mb-1">Notice Title / Headline *</label>
+                                    <input type="text" name="title" class="form-control form-control-sm"
+                                           placeholder="e.g. End-Semester Exam Hall Ticket Notice" required>
+                                </div>
+
+                                <div class="col-6">
+                                    <label class="form-label small fw-semibold mb-1">Category *</label>
+                                    <select name="category" class="form-select form-select-sm">
+                                        <option value="ACADEMIC">ACADEMIC</option>
+                                        <option value="EXAMINATION">EXAMINATION</option>
+                                        <option value="URGENT">URGENT</option>
+                                        <option value="EVENT">EVENT</option>
+                                        <option value="GENERAL">GENERAL</option>
+                                    </select>
+                                </div>
+
+                                <div class="col-6">
+                                    <label class="form-label small fw-semibold mb-1">Target Audience *</label>
+                                    <select name="targetAudience" class="form-select form-select-sm">
+                                        <option value="ALL">All (Students &amp; Faculty)</option>
+                                        <option value="STUDENTS">Students Only</option>
+                                        <option value="FACULTY">Faculty Only</option>
+                                    </select>
+                                </div>
+
+                                <div class="col-12">
+                                    <label class="form-label small fw-semibold mb-1">Specific Department (Optional)</label>
+                                    <select name="departmentId" class="form-select form-select-sm">
+                                        <option value="">University-Wide (All Departments)</option>
+                                        <option th:each="d : ${departments}" th:value="${d.id}" th:text="${d.code + ' - ' + d.name}"></option>
+                                    </select>
+                                </div>
+
+                                <div class="col-12">
+                                    <label class="form-label small fw-semibold mb-1">Circular Content *</label>
+                                    <textarea name="content" rows="4" class="form-control form-control-sm"
+                                              placeholder="Enter detailed notice text..." required></textarea>
+                                </div>
+
+                                <div class="col-12">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" name="pinned" value="true" id="pinCheck">
+                                        <label class="form-check-label small fw-semibold" for="pinCheck">
+                                            Pin this notice to the top of all dashboards
+                                        </label>
+                                    </div>
+                                </div>
+
+                                <div class="col-12">
+                                    <button type="submit" class="btn btn-primary btn-sm w-100 py-2 fw-bold">
+                                        <i class="bi bi-send-fill me-1"></i>Publish Circular Now
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+
+                    <!-- Quick PDF Reports Box -->
+                    <div class="erp-card mb-0">
+                        <div class="erp-card-header">
+                            <h2 class="erp-card-title"><i class="bi bi-file-earmark-pdf-fill text-danger"></i> Official PDF Reports</h2>
+                        </div>
+                        <div class="p-3 d-grid gap-2">
+                            <a th:href="@{/admin/reports/performance/pdf}" class="btn btn-sm btn-outline-primary text-start">
+                                <i class="bi bi-file-earmark-bar-graph me-2"></i>Download Full University Performance PDF
+                            </a>
+                            <a th:href="@{/admin/reports/low-attendance/pdf}" class="btn btn-sm btn-outline-danger text-start">
+                                <i class="bi bi-exclamation-triangle me-2"></i>Download Low Attendance (&lt;75%) PDF
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right Column: Published Notices List -->
+                <div class="col-lg-8">
+                    <div class="erp-card mb-0">
+                        <div class="erp-card-header">
+                            <h2 class="erp-card-title">
+                                <i class="bi bi-pin-angle-fill text-primary"></i>
+                                Active University Notices & Circulars (<span th:text="${#lists.size(notices)}">0</span>)
+                            </h2>
+                        </div>
+                        <div class="p-3">
+                            <div th:each="n : ${notices}" class="p-3 rounded-3 border mb-3"
+                                 th:classappend="${n.pinned} ? 'bg-light border-primary' : 'bg-white'">
+                                <div class="d-flex justify-content-between align-items-start mb-2">
+                                    <div class="d-flex align-items-center gap-2 flex-wrap">
+                                        <span th:if="${n.pinned}" class="badge bg-danger">
+                                            <i class="bi bi-pin-angle-fill me-1"></i>PINNED
+                                        </span>
+                                        <span class="badge badge-soft-primary" th:text="${n.category}">ACADEMIC</span>
+                                        <span class="badge bg-secondary bg-opacity-10 text-secondary" th:text="'Audience: ' + ${n.targetAudience}">ALL</span>
+                                        <span th:if="${n.department != null}" class="badge bg-info text-dark" th:text="${n.department.code}">CSE</span>
+                                    </div>
+                                    <div class="d-flex align-items-center gap-1">
+                                        <form th:action="@{/admin/notices/pin/{id}(id=${n.id})}" method="post">
+                                            <button type="submit" class="btn btn-sm btn-outline-secondary" title="Toggle Pin">
+                                                <i class="bi bi-pin-angle"></i>
+                                            </button>
+                                        </form>
+                                        <form th:action="@{/admin/notices/delete/{id}(id=${n.id})}" method="post">
+                                            <button type="submit" class="btn btn-sm btn-outline-danger" title="Delete">
+                                                <i class="bi bi-trash"></i>
+                                            </button>
+                                        </form>
+                                    </div>
+                                </div>
+                                <h3 class="h6 fw-bold text-dark mb-1" th:text="${n.title}">Title</h3>
+                                <p class="small text-secondary mb-2" th:text="${n.content}">Content</p>
+                                <div class="text-muted" style="font-size: 0.75rem;">
+                                    Published on <span th:text="${#temporals.format(n.publishedDate, 'dd MMM yyyy, hh:mm a')}">Date</span>
+                                    by <span class="fw-semibold" th:text="${n.postedBy != null ? n.postedBy.fullName : 'Registrar'}">Admin</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+</div>
+<div th:replace="~{fragments/layout :: scripts}"></div>
+</body>
+</html>
+

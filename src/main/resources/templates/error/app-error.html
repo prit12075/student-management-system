@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head th:replace="~{fragments/layout :: head('Error')}"></head>
+<body class="bg-light">
+<div class="container py-5" style="max-width:720px">
+    <div class="erp-card">
+        <div class="p-4">
+            <div class="h5 fw-bold text-danger"><i class="bi bi-bug-fill me-2"></i><span th:text="${title}">Error</span></div>
+            <p th:text="${message}">message</p>
+            <div class="small text-muted font-monospace" th:text="${path}">/path</div>
+            <a href="javascript:history.back()" class="btn btn-sm btn-primary mt-3">Go back</a>
+        </div>
+    </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head th:replace="~{fragments/layout :: head('My Attendance')}"></head>
+<body>
+<div class="erp-wrapper">
+    <aside th:replace="~{fragments/layout :: studentSidebar('attendance')}"></aside>
+
+    <div class="erp-main">
+        <header th:replace="~{fragments/layout :: topbar('My Subject-wise Attendance & Compliance', 'Track Present, Absent & Leave Records • Mandatory 75% Requirement')}"></header>
+
+        <main class="erp-content">
+            <!-- Low Attendance Alert Banner -->
+            <div th:if="${performance.lowAttendanceAlert}" class="low-attendance-banner d-flex align-items-center justify-content-between">
+                <div class="d-flex align-items-center gap-3">
+                    <i class="bi bi-exclamation-octagon-fill fs-2"></i>
+                    <div>
+                        <div class="fw-bold">LOW ATTENDANCE WARNING (&lt;75%)</div>
+                        <div class="small opacity-90">
+                            One or more of your enrolled subjects are below 75% attendance. See the "Classes Needed for 75%" column below.
+                        </div>
+                    </div>
+                </div>
+                <a th:href="@{/student/reports/attendance/pdf}" class="btn btn-light btn-sm fw-bold text-danger">
+                    <i class="bi bi-file-earmark-pdf-fill me-1"></i>Download Attendance PDF
+                </a>
+            </div>
+
+            <!-- Subject-wise Summary Table -->
+            <div class="erp-card">
+                <div class="erp-card-header">
+                    <h2 class="erp-card-title">
+                        <i class="bi bi-calendar2-check-fill text-primary"></i>
+                        Subject-wise Attendance Percentage Summary
+                    </h2>
+                    <a th:href="@{/student/reports/attendance/pdf}" class="btn btn-sm btn-primary">
+                        <i class="bi bi-file-earmark-pdf-fill me-1"></i>Download Official Attendance PDF
+                    </a>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-hover table-erp mb-0">
+                        <thead>
+                        <tr>
+                            <th>Code</th>
+                            <th>Subject Title</th>
+                            <th>Faculty</th>
+                            <th>Total Classes</th>
+                            <th>Present</th>
+                            <th>Absent</th>
+                            <th>On Leave</th>
+                            <th>Attendance %</th>
+                            <th>Status / Advisory</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr th:each="dto : ${summaries}">
+                            <td class="fw-bold text-primary" th:text="${dto.subject.code}">CS501</td>
+                            <td class="fw-semibold" th:text="${dto.subject.name}">Algorithms</td>
+                            <td class="small" th:text="${dto.subject.assignedFaculty != null ? 'Dr. ' + dto.subject.assignedFaculty.fullName : 'TBA'}">Dr. Verma</td>
+                            <td th:text="${dto.totalClasses}">10</td>
+                            <td class="text-success fw-bold" th:text="${dto.presentCount}">9</td>
+                            <td class="text-danger fw-bold" th:text="${dto.absentCount}">1</td>
+                            <td class="text-warning fw-bold" th:text="${dto.leaveCount}">0</td>
+                            <td>
+                                <span class="fw-bold"
+                                      th:classappend="${dto.lowAttendance} ? 'text-danger' : 'text-success'"
+                                      th:text="${dto.attendancePercentage + '%'}">90%</span>
+                                <div class="progress mt-1" style="height: 5px;">
+                                    <div class="progress-bar"
+                                         th:classappend="${dto.lowAttendance} ? 'bg-danger' : 'bg-success'"
+                                         th:style="'width: ' + ${dto.attendancePercentage} + '%'"></div>
+                                </div>
+                            </td>
+                            <td>
+                                <span th:if="${dto.lowAttendance}" class="badge badge-soft-danger">
+                                    <i class="bi bi-exclamation-triangle-fill me-1"></i>
+                                    ALERT (&lt;75%) • Attend next <span th:text="${dto.classesNeededFor75}">6</span> classes
+                                </span>
+                                <span th:unless="${dto.lowAttendance}" class="badge badge-soft-success">
+                                    <i class="bi bi-check-circle-fill me-1"></i>ELIGIBLE (&ge;75%)
+                                </span>
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Chronological Lecture Log -->
+            <div class="erp-card mb-0">
+                <div class="erp-card-header">
+                    <h2 class="erp-card-title"><i class="bi bi-clock-history text-primary"></i> Chronological Lecture Attendance Log</h2>
+                    <form th:action="@{/student/attendance}" method="get" class="d-flex align-items-center gap-2">
+                        <select name="subjectId" class="form-select form-select-sm" onchange="this.form.submit()">
+                            <option value="">All Subjects</option>
+                            <option th:each="sub : ${enrolledSubjects}" th:value="${sub.id}"
+                                    th:text="${sub.code + ' - ' + sub.name}"
+                                    th:selected="${selectedSubjectId != null and selectedSubjectId == sub.id}"></option>
+                        </select>
+                    </form>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-hover table-erp mb-0">
+                        <thead>
+                        <tr>
+                            <th>Lecture Date</th>
+                            <th>Subject</th>
+                            <th>Status</th>
+                            <th>Marked By</th>
+                            <th>Remarks</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr th:each="rec : ${history}">
+                            <td class="fw-semibold" th:text="${#temporals.format(rec.attendanceDate, 'dd MMM yyyy')}">Date</td>
+                            <td th:text="${rec.subject.code + ' - ' + rec.subject.name}">CS501</td>
+                            <td>
+                                <span th:if="${rec.status.name() == 'PRESENT'}" class="badge badge-soft-success">PRESENT</span>
+                                <span th:if="${rec.status.name() == 'ABSENT'}" class="badge badge-soft-danger">ABSENT</span>
+                                <span th:if="${rec.status.name() == 'LEAVE'}" class="badge badge-soft-warning">ON LEAVE</span>
+                            </td>
+                            <td class="small" th:text="${rec.markedBy != null ? 'Dr. ' + rec.markedBy.fullName : 'Faculty'}">Faculty</td>
+                            <td class="small text-muted" th:text="${rec.remarks != null and !#strings.isEmpty(rec.remarks) ? rec.remarks : '-'}">-</td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+    </div>
+</div>
+<div th:replace="~{fragments/layout :: scripts}"></div>
+</body>
+</html>
+

@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head th:replace="~{fragments/layout :: head('Assignments & Schedule')}"></head>
+<body>
+<div class="erp-wrapper">
+    <aside th:replace="~{fragments/layout :: facultySidebar('assignments')}"></aside>
+
+    <div class="erp-main">
+        <header th:replace="~{fragments/layout :: topbar('Assignments & Teaching Timetable', 'Publish Coursework Assignments & View Weekly Teaching Schedule')}"></header>
+
+        <main class="erp-content">
+            <div th:replace="~{fragments/layout :: flashMessages}"></div>
+
+            <div class="row g-4">
+                <!-- Left Column: Create Assignment Form -->
+                <div class="col-lg-4">
+                    <div class="erp-card">
+                        <div class="erp-card-header">
+                            <h2 class="erp-card-title"><i class="bi bi-journal-plus text-primary"></i> Post New Assignment</h2>
+                        </div>
+                        <div class="p-3">
+                            <form th:action="@{/faculty/assignments/save}" method="post" class="row g-3">
+                                <div class="col-12">
+                                    <label class="form-label small fw-semibold mb-1">Assigned Subject *</label>
+                                    <select name="subjectId" class="form-select form-select-sm" required>
+                                        <option th:each="sub : ${assignedSubjects}" th:value="${sub.id}"
+                                                th:text="${sub.code + ' - ' + sub.name}"></option>
+                                    </select>
+                                </div>
+
+                                <div class="col-12">
+                                    <label class="form-label small fw-semibold mb-1">Assignment Title *</label>
+                                    <input type="text" name="title" class="form-control form-control-sm"
+                                           placeholder="e.g. Lab 4: Spring Security JWT & BCrypt" required>
+                                </div>
+
+                                <div class="col-6">
+                                    <label class="form-label small fw-semibold mb-1">Submission Due Date *</label>
+                                    <input type="date" name="dueDate" class="form-control form-control-sm" required>
+                                </div>
+
+                                <div class="col-6">
+                                    <label class="form-label small fw-semibold mb-1">Maximum Marks</label>
+                                    <input type="number" name="maxMarks" class="form-control form-control-sm" value="20">
+                                </div>
+
+                                <div class="col-12">
+                                    <label class="form-label small fw-semibold mb-1">Problem Statement &amp; Instructions *</label>
+                                    <textarea name="description" rows="4" class="form-control form-control-sm"
+                                              placeholder="Describe deliverables and grading criteria..." required></textarea>
+                                </div>
+
+                                <div class="col-12">
+                                    <label class="form-label small fw-semibold mb-1">Reference Documentation URL</label>
+                                    <input type="text" name="referenceLink" class="form-control form-control-sm"
+                                           placeholder="https://docs.spring.io/...">
+                                </div>
+
+                                <div class="col-12">
+                                    <button type="submit" class="btn btn-primary btn-sm w-100 py-2 fw-bold">
+                                        <i class="bi bi-cloud-upload-fill me-1"></i>Publish Assignment to Students
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right Column: Published Assignments & Timetable -->
+                <div class="col-lg-8">
+                    <div class="erp-card">
+                        <div class="erp-card-header">
+                            <h2 class="erp-card-title">
+                                <i class="bi bi-list-task text-primary"></i>
+                                Published Class Assignments (<span th:text="${#lists.size(assignments)}">0</span>)
+                            </h2>
+                        </div>
+                        <div class="p-3">
+                            <div th:each="a : ${assignments}" class="p-3 border rounded-3 mb-3 bg-white">
+                                <div class="d-flex justify-content-between align-items-start mb-1">
+                                    <div>
+                                        <span class="badge bg-primary me-1" th:text="${a.subject.code}">CS501</span>
+                                        <span class="fw-bold text-dark" th:text="${a.title}">Title</span>
+                                    </div>
+                                    <div class="d-flex align-items-center gap-2">
+                                        <span class="badge badge-soft-warning"
+                                              th:text="'Due: ' + ${#temporals.format(a.dueDate, 'dd MMM yyyy')}">Due Date</span>
+                                        <form th:action="@{/faculty/assignments/delete/{id}(id=${a.id})}" method="post">
+                                            <button type="submit" class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button>
+                                        </form>
+                                    </div>
+                                </div>
+                                <p class="small text-secondary mb-1" th:text="${a.description}">Description</p>
+                                <div class="d-flex justify-content-between align-items-center small text-muted">
+                                    <span th:text="'Max Marks: ' + ${a.maxMarks}">20 Marks</span>
+                                    <a th:if="${a.referenceLink != null and !#strings.isEmpty(a.referenceLink)}"
+                                       th:href="${a.referenceLink}" target="_blank" class="text-decoration-none">
+                                        <i class="bi bi-box-arrow-up-right me-1"></i>Reference Material
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="erp-card mb-0">
+                        <div class="erp-card-header">
+                            <h2 class="erp-card-title"><i class="bi bi-calendar3 text-primary"></i> Weekly Teaching Schedule</h2>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="table table-erp mb-0">
+                                <thead>
+                                <tr>
+                                    <th>Day</th>
+                                    <th>Time</th>
+                                    <th>Subject</th>
+                                    <th>Class</th>
+                                    <th>Room &amp; Slot Type</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                <tr th:each="slot : ${timetableSlots}">
+                                    <td><span class="badge bg-primary" th:text="${slot.dayOfWeek}">MONDAY</span></td>
+                                    <td class="fw-semibold" th:text="${slot.startTime + ' - ' + slot.endTime}">09:00 - 10:00</td>
+                                    <td th:text="${slot.subject.code + ' - ' + slot.subject.name}">CS501</td>
+                                    <td th:text="'Sem ' + ${slot.semester} + ' (Sec ' + ${slot.section} + ')'">Sem 5</td>
+                                    <td><span class="badge bg-light text-dark border" th:text="${slot.roomNumber + ' • ' + slot.slotType}">LH-301</span></td>
+                                </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+</div>
+<div th:replace="~{fragments/layout :: scripts}"></div>
+</body>
+</html>
+

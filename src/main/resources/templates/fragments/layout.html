@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head th:fragment="head(pageTitle)">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${pageTitle} + ' | Apex University ERP'">Apex University ERP</title>
+    <!-- Fonts & UI libraries are bundled locally (static/vendor) so the ERP also works offline -->
+    <link th:href="@{/vendor/inter/inter.css}" rel="stylesheet">
+    <link th:href="@{/vendor/bootstrap/css/bootstrap.min.css}" rel="stylesheet">
+    <link th:href="@{/vendor/bootstrap-icons/bootstrap-icons.min.css}" rel="stylesheet">
+    <!-- Custom University ERP Stylesheet -->
+    <link th:href="@{/css/erp-style.css}" rel="stylesheet">
+</head>
+<body>
+
+<!-- ==================== ADMIN SIDEBAR ==================== -->
+<aside th:fragment="adminSidebar(activePage)" id="erpSidebar" class="erp-sidebar">
+    <div class="erp-sidebar-brand">
+        <div class="erp-brand-icon">
+            <i class="bi bi-mortarboard-fill"></i>
+        </div>
+        <div>
+            <div class="fw-bold fs-6 lh-sm text-white">APEX UNIVERSITY</div>
+            <span class="badge bg-primary bg-opacity-75 text-white" style="font-size: 0.68rem;">ADMINISTRATION ERP</span>
+        </div>
+    </div>
+
+    <nav class="erp-sidebar-nav">
+        <div class="erp-nav-section">Executive Overview</div>
+        <a th:href="@{/admin/dashboard}" class="erp-nav-link" th:classappend="${activePage == 'dashboard'} ? 'active'">
+            <i class="bi bi-grid-1x2-fill"></i>
+            <span>Admin Dashboard</span>
+        </a>
+
+        <div class="erp-nav-section mt-2">People & Directory</div>
+        <a th:href="@{/admin/students}" class="erp-nav-link" th:classappend="${activePage == 'students'} ? 'active'">
+            <i class="bi bi-people-fill"></i>
+            <span>Students Directory</span>
+        </a>
+        <a th:href="@{/admin/faculty}" class="erp-nav-link" th:classappend="${activePage == 'faculty'} ? 'active'">
+            <i class="bi bi-person-badge-fill"></i>
+            <span>Faculty & Staff</span>
+        </a>
+
+        <div class="erp-nav-section mt-2">Academic Operations</div>
+        <a th:href="@{/admin/academics}" class="erp-nav-link" th:classappend="${activePage == 'academics'} ? 'active'">
+            <i class="bi bi-building-fill-gear"></i>
+            <span>Depts, Courses & Subjects</span>
+        </a>
+        <a th:href="@{/admin/schedule}" class="erp-nav-link" th:classappend="${activePage == 'schedule'} ? 'active'">
+            <i class="bi bi-calendar-week-fill"></i>
+            <span>Timetable & Exams</span>
+        </a>
+
+        <div class="erp-nav-section mt-2">Evaluation & Notices</div>
+        <a th:href="@{/admin/analytics}" class="erp-nav-link" th:classappend="${activePage == 'analytics'} ? 'active'">
+            <i class="bi bi-bar-chart-line-fill"></i>
+            <span>Attendance & Marks</span>
+        </a>
+        <a th:href="@{/admin/notices}" class="erp-nav-link" th:classappend="${activePage == 'notices'} ? 'active'">
+            <i class="bi bi-megaphone-fill"></i>
+            <span>Notice Board & PDFs</span>
+        </a>
+
+        <div class="erp-nav-section mt-2">Advanced Java Modules</div>
+        <a th:href="@{/admin/java-lab}" class="erp-nav-link" th:classappend="${activePage == 'javalab'} ? 'active'">
+            <i class="bi bi-cpu-fill"></i>
+            <span>Java Lab Console</span>
+        </a>
+        <a th:href="@{/admin/smart}" class="erp-nav-link" th:classappend="${activePage == 'smart'} ? 'active'">
+            <i class="bi bi-stars"></i>
+            <span>Smart Campus</span>
+        </a>
+    </nav>
+
+    <div class="erp-sidebar-footer">
+        <div class="d-flex align-items-center justify-content-between">
+            <div class="text-truncate me-2">
+                <div class="fw-semibold small text-white text-truncate" th:text="${currentUser != null ? currentUser.fullName : 'Administrator'}">Admin</div>
+                <div class="text-white-50" style="font-size: 0.75rem;">Registrar Control</div>
+            </div>
+            <a th:href="@{/logout}" class="btn btn-sm btn-outline-light" title="Sign Out">
+                <i class="bi bi-box-arrow-right"></i>
+            </a>
+        </div>
+    </div>
+</aside>
+
+<!-- ==================== FACULTY SIDEBAR ==================== -->
+<aside th:fragment="facultySidebar(activePage)" id="erpSidebar" class="erp-sidebar">
+    <div class="erp-sidebar-brand">
+        <div class="erp-brand-icon">
+            <i class="bi bi-easel2-fill"></i>
+        </div>
+        <div>
+            <div class="fw-bold fs-6 lh-sm text-white">APEX UNIVERSITY</div>
+            <span class="badge bg-info text-dark fw-bold" style="font-size: 0.68rem;">FACULTY PORTAL</span>
+        </div>
+    </div>
+
+    <nav class="erp-sidebar-nav">
+        <div class="erp-nav-section">Faculty Workspace</div>
+        <a th:href="@{/faculty/dashboard}" class="erp-nav-link" th:classappend="${activePage == 'dashboard'} ? 'active'">
+            <i class="bi bi-speedometer2"></i>
+            <span>Faculty Dashboard</span>
+        </a>
+
+        <div class="erp-nav-section mt-2">Classroom & Evaluation</div>
+        <a th:href="@{/faculty/attendance}" class="erp-nav-link" th:classappend="${activePage == 'attendance'} ? 'active'">
+            <i class="bi bi-calendar2-check-fill"></i>
+            <span>Mark Attendance</span>
+        </a>
+        <a th:href="@{/faculty/marks}" class="erp-nav-link" th:classappend="${activePage == 'marks'} ? 'active'">
+            <i class="bi bi-award-fill"></i>
+            <span>Enter Exam Marks</span>
+        </a>
+        <a th:href="@{/faculty/assignments}" class="erp-nav-link" th:classappend="${activePage == 'assignments'} ? 'active'">
+            <i class="bi bi-journal-code"></i>
+            <span>Assignments & Schedule</span>
+        </a>
+
+        <div class="erp-nav-section mt-2">Analytics & Reports</div>
+        <a th:href="@{/faculty/performance}" class="erp-nav-link" th:classappend="${activePage == 'performance'} ? 'active'">
+            <i class="bi bi-graph-up-arrow"></i>
+            <span>Student Performance</span>
+        </a>
+    </nav>
+
+    <div class="erp-sidebar-footer">
+        <div class="d-flex align-items-center justify-content-between">
+            <div class="text-truncate me-2">
+                <div class="fw-semibold small text-white text-truncate" th:text="${currentFaculty != null ? currentFaculty.fullName : 'Faculty'}">Faculty</div>
+                <div class="text-white-50" style="font-size: 0.75rem;" th:text="${currentFaculty != null ? currentFaculty.employeeId : ''}">FAC-001</div>
+            </div>
+            <a th:href="@{/logout}" class="btn btn-sm btn-outline-light" title="Sign Out">
+                <i class="bi bi-box-arrow-right"></i>
+            </a>
+        </div>
+    </div>
+</aside>
+
+<!-- ==================== STUDENT SIDEBAR ==================== -->
+<aside th:fragment="studentSidebar(activePage)" id="erpSidebar" class="erp-sidebar">
+    <div class="erp-sidebar-brand">
+        <div class="erp-brand-icon">
+            <i class="bi bi-person-workspace"></i>
+        </div>
+        <div>
+            <div class="fw-bold fs-6 lh-sm text-white">APEX UNIVERSITY</div>
+            <span class="badge bg-warning text-dark fw-bold" style="font-size: 0.68rem;">STUDENT PORTAL</span>
+        </div>
+    </div>
+
+    <nav class="erp-sidebar-nav">
+        <div class="erp-nav-section">Academic Self-Service</div>
+        <a th:href="@{/student/dashboard}" class="erp-nav-link" th:classappend="${activePage == 'dashboard'} ? 'active'">
+            <i class="bi bi-house-door-fill"></i>
+            <span>Student Dashboard</span>
+        </a>
+        <a th:href="@{/student/attendance}" class="erp-nav-link" th:classappend="${activePage == 'attendance'} ? 'active'">
+            <i class="bi bi-person-check-fill"></i>
+            <span>My Attendance</span>
+        </a>
+        <a th:href="@{/student/marks}" class="erp-nav-link" th:classappend="${activePage == 'marks'} ? 'active'">
+            <i class="bi bi-file-earmark-bar-graph-fill"></i>
+            <span>Exam Results & Grades</span>
+        </a>
+        <a th:href="@{/student/academics}" class="erp-nav-link" th:classappend="${activePage == 'academics'} ? 'active'">
+            <i class="bi bi-calendar3"></i>
+            <span>Timetable & Assignments</span>
+        </a>
+        <a th:href="@{/student/profile}" class="erp-nav-link" th:classappend="${activePage == 'profile'} ? 'active'">
+            <i class="bi bi-person-vcard-fill"></i>
+            <span>Profile & Notices</span>
+        </a>
+        <a th:href="@{/student/planner}" class="erp-nav-link" th:classappend="${activePage == 'planner'} ? 'active'">
+            <i class="bi bi-bullseye"></i>
+            <span>Goal Planner & Risk</span>
+        </a>
+        <a th:href="@{/student/notifications}" class="erp-nav-link" th:classappend="${activePage == 'notifications'} ? 'active'">
+            <i class="bi bi-bell-fill"></i>
+            <span>Notifications</span>
+            <span class="badge bg-danger ms-auto" th:if="${unreadCount != null and unreadCount > 0}" th:text="${unreadCount}">2</span>
+        </a>
+
+        <div class="erp-nav-section mt-3">Official Downloads</div>
+        <a th:href="@{/student/reports/marksheet/pdf}" class="erp-nav-link text-warning">
+            <i class="bi bi-file-earmark-pdf-fill"></i>
+            <span>Download Marksheet PDF</span>
+        </a>
+        <a th:href="@{/student/reports/attendance/pdf}" class="erp-nav-link text-info">
+            <i class="bi bi-cloud-arrow-down-fill"></i>
+            <span>Attendance Report PDF</span>
+        </a>
+        <a th:href="@{/student/hall-ticket}" class="erp-nav-link" th:classappend="${activePage == 'hallticket'} ? 'active'">
+            <i class="bi bi-ticket-perforated-fill"></i>
+            <span>Exam Hall Ticket</span>
+        </a>
+    </nav>
+
+    <div class="erp-sidebar-footer">
+        <div class="d-flex align-items-center justify-content-between">
+            <div class="text-truncate me-2">
+                <div class="fw-semibold small text-white text-truncate" th:text="${currentStudent != null ? currentStudent.fullName : 'Student'}">Student</div>
+                <div class="text-white-50" style="font-size: 0.75rem;" th:text="${currentStudent != null ? currentStudent.rollNumber : ''}">STU001</div>
+            </div>
+            <a th:href="@{/logout}" class="btn btn-sm btn-outline-light" title="Sign Out">
+                <i class="bi bi-box-arrow-right"></i>
+            </a>
+        </div>
+    </div>
+</aside>
+
+<!-- ==================== TOP HEADER BAR ==================== -->
+<header th:fragment="topbar(title, subtitle)" class="erp-topbar">
+    <div class="d-flex align-items-center gap-3">
+        <button id="sidebarToggleBtn" class="btn btn-outline-secondary btn-sm d-lg-none" type="button">
+            <i class="bi bi-list fs-5"></i>
+        </button>
+        <div>
+            <h1 class="h5 fw-bold mb-0 text-dark" th:text="${title}">Dashboard</h1>
+            <p class="text-muted small mb-0 d-none d-sm-block" th:text="${subtitle}">Apex National Institute of Technology • Academic Session 2026-27</p>
+        </div>
+    </div>
+
+    <div class="d-flex align-items-center gap-3">
+        <span class="badge bg-light text-dark border px-3 py-2 d-none d-md-inline-flex align-items-center gap-2">
+            <i class="bi bi-shield-lock-fill text-primary"></i>
+            <span th:text="${currentUser != null ? currentUser.role.displayName : 'Authenticated'}">Role</span>
+        </span>
+        <a th:href="@{/logout}" class="btn btn-sm btn-outline-danger d-flex align-items-center gap-1">
+            <i class="bi bi-power"></i>
+            <span>Logout</span>
+        </a>
+    </div>
+</header>
+
+<!-- ==================== FLASH ALERTS ==================== -->
+<div th:fragment="flashMessages">
+    <div th:if="${successMessage}" class="alert alert-success alert-dismissible fade show shadow-sm border-0 d-flex align-items-center gap-2 mb-4" role="alert">
+        <i class="bi bi-check-circle-fill fs-5"></i>
+        <div th:text="${successMessage}">Success!</div>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+    <div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show shadow-sm border-0 d-flex align-items-center gap-2 mb-4" role="alert">
+        <i class="bi bi-exclamation-triangle-fill fs-5"></i>
+        <div th:text="${errorMessage}">Error!</div>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+</div>
+
+<!-- ==================== SCRIPTS ==================== -->
+<div th:fragment="scripts">
+    <script th:src="@{/vendor/bootstrap/js/bootstrap.bundle.min.js}"></script>
+    <script th:src="@{/vendor/chartjs/chart.umd.min.js}"></script>
+    <script th:src="@{/js/erp-main.js}"></script>
+</div>
+
+</body>
+</html>
+

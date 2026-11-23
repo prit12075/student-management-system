@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head th:replace="~{fragments/layout :: head('Performance & Attendance Analytics')}"></head>
+<body>
+<div class="erp-wrapper">
+    <aside th:replace="~{fragments/layout :: adminSidebar('analytics')}"></aside>
+
+    <div class="erp-main">
+        <header th:replace="~{fragments/layout :: topbar('Attendance, Marks & Performance Analytics', 'University-wide Evaluation Metrics, Charts & Official PDF Exports')}"></header>
+
+        <main class="erp-content">
+            <div class="erp-card">
+                <div class="p-3 d-flex flex-wrap justify-content-between align-items-center gap-3">
+                    <form th:action="@{/admin/analytics}" method="get" class="d-flex align-items-center gap-2">
+                        <label class="small fw-semibold text-secondary mb-0">Filter Department:</label>
+                        <select name="departmentId" class="form-select form-select-sm" style="width: 240px;" onchange="this.form.submit()">
+                            <option value="">All University Departments</option>
+                            <option th:each="d : ${departments}" th:value="${d.id}"
+                                    th:text="${d.code + ' - ' + d.name}"
+                                    th:selected="${selectedDepartmentId != null and selectedDepartmentId == d.id}"></option>
+                        </select>
+                    </form>
+
+                    <div class="d-flex gap-2">
+                        <a th:href="@{/admin/reports/low-attendance/pdf(departmentId=${selectedDepartmentId})}" class="btn btn-sm btn-danger">
+                            <i class="bi bi-exclamation-triangle-fill me-1"></i>Download &lt;75% Low Attendance PDF
+                        </a>
+                        <a th:href="@{/admin/reports/performance/pdf(departmentId=${selectedDepartmentId})}" class="btn btn-sm btn-primary">
+                            <i class="bi bi-file-earmark-pdf-fill me-1"></i>Download University Performance PDF
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Interactive Chart -->
+            <div class="erp-card">
+                <div class="erp-card-header">
+                    <h2 class="erp-card-title">
+                        <i class="bi bi-graph-up text-primary"></i>
+                        Student-wise Attendance % vs Aggregate Marks % Correlation
+                    </h2>
+                </div>
+                <div class="p-3">
+                    <canvas id="studentCorrelationChart" height="95"></canvas>
+                </div>
+            </div>
+
+            <!-- Complete Performance & Attendance Table -->
+            <div class="erp-card mb-0">
+                <div class="erp-card-header">
+                    <h2 class="erp-card-title">
+                        <i class="bi bi-award-fill text-primary"></i>
+                        Complete Student Attendance & Examination Standing
+                    </h2>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-hover table-erp mb-0">
+                        <thead>
+                        <tr>
+                            <th>Roll No</th>
+                            <th>Student Name</th>
+                            <th>Dept / Sem</th>
+                            <th>Classes Attended</th>
+                            <th>Attendance %</th>
+                            <th>Avg Marks %</th>
+                            <th>SGPA</th>
+                            <th>Grade</th>
+                            <th>Attendance Status</th>
+                            <th>Marksheet</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr th:each="p : ${performances}">
+                            <td class="fw-bold text-primary" th:text="${p.student.rollNumber}">STU001</td>
+                            <td class="fw-semibold" th:text="${p.student.fullName}">Aarav Sharma</td>
+                            <td th:text="${p.student.department.code + ' • Sem ' + p.student.semester}">CSE Sem 5</td>
+                            <td th:text="${p.presentClasses + ' / ' + p.totalClasses}">45 / 50</td>
+                            <td>
+                                <span class="fw-bold"
+                                      th:classappend="${p.lowAttendanceAlert} ? 'text-danger' : 'text-success'"
+                                      th:text="${p.attendancePercentage + '%'}">90%</span>
+                            </td>
+                            <td class="fw-semibold" th:text="${p.averagePercentage + '%'}">88.5%</td>
+                            <td class="fw-bold text-primary" th:text="${p.sgpa}">9.2</td>
+                            <td><span class="badge badge-soft-primary" th:text="${p.overallGrade}">A+</span></td>
+                            <td>
+                                <span th:if="${p.lowAttendanceAlert}" class="badge badge-soft-danger">
+                                    <i class="bi bi-exclamation-triangle-fill me-1"></i>ALERT (&lt;75%)
+                                </span>
+                                <span th:unless="${p.lowAttendanceAlert}" class="badge badge-soft-success">
+                                    <i class="bi bi-check-circle-fill me-1"></i>ELIGIBLE (&gt;=75%)
+                                </span>
+                            </td>
+                            <td>
+                                <a th:href="@{/admin/students/{id}/marksheet/pdf(id=${p.student.id})}" class="btn btn-sm btn-outline-dark">
+                                    <i class="bi bi-file-earmark-pdf"></i> PDF
+                                </a>
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+    </div>
+</div>
+<div th:replace="~{fragments/layout :: scripts}"></div>
+<script th:inline="javascript">
+    const stuLabels = /*[[${studentLabels}]]*/ [];
+    const attSeries = /*[[${attendanceSeries}]]*/ [];
+    const markSeries = /*[[${marksSeries}]]*/ [];
+
+    new Chart(document.getElementById('studentCorrelationChart'), {
+        type: 'bar',
+        data: {
+            labels: stuLabels,
+            datasets: [
+                {
+                    label: 'Attendance %',
+                    data: attSeries,
+                    backgroundColor: attSeries.map(v => v < 75 ? '#dc2626' : '#1d5d9b'),
+                    borderRadius: 5
+                },
+                {
+                    label: 'Aggregate Marks %',
+                    data: markSeries,
+                    backgroundColor: '#15803d',
+                    borderRadius: 5
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                y: { beginAtZero: true, max: 100 }
+            }
+        }
+    });
+</script>
+</body>
+</html>
+

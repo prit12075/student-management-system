@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head th:replace="~{fragments/layout :: head('Admin Dashboard')}"></head>
+<body>
+<div class="erp-wrapper">
+    <aside th:replace="~{fragments/layout :: adminSidebar('dashboard')}"></aside>
+
+    <div class="erp-main">
+        <header th:replace="~{fragments/layout :: topbar('University Administration Dashboard', 'Executive Overview • Attendance, Examinations & Academic Performance')}"></header>
+
+        <main class="erp-content">
+            <div th:replace="~{fragments/layout :: flashMessages}"></div>
+
+            <!-- KPI Statistics Cards -->
+            <div class="row g-3 mb-4">
+                <div class="col-sm-6 col-xl-3">
+                    <div class="erp-stat-card">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <div class="text-muted small fw-semibold text-uppercase">Enrolled Students</div>
+                                <div class="h3 fw-bold mb-1 mt-1" th:text="${totalStudents}">0</div>
+                                <a th:href="@{/admin/students}" class="small text-decoration-none fw-semibold">
+                                    Manage Directory <i class="bi bi-arrow-right"></i>
+                                </a>
+                            </div>
+                            <div class="erp-stat-icon bg-primary bg-opacity-10 text-primary">
+                                <i class="bi bi-people-fill"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-sm-6 col-xl-3">
+                    <div class="erp-stat-card stat-success">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <div class="text-muted small fw-semibold text-uppercase">Faculty & Professors</div>
+                                <div class="h3 fw-bold mb-1 mt-1" th:text="${totalFaculty}">0</div>
+                                <span class="small text-muted" th:text="${totalDepartments} + ' Departments • ' + ${totalSubjects} + ' Subjects'">4 Depts</span>
+                            </div>
+                            <div class="erp-stat-icon bg-success bg-opacity-10 text-success">
+                                <i class="bi bi-person-badge-fill"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-sm-6 col-xl-3">
+                    <div class="erp-stat-card stat-warning">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <div class="text-muted small fw-semibold text-uppercase">University Attendance</div>
+                                <div class="h3 fw-bold mb-1 mt-1" th:text="${avgUniversityAttendance} + '%'">82.5%</div>
+                                <span class="small text-muted" th:text="'Avg Marks: ' + ${avgUniversityMarks} + '%'">Avg Marks</span>
+                            </div>
+                            <div class="erp-stat-icon bg-warning bg-opacity-10 text-warning">
+                                <i class="bi bi-calendar2-check-fill"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-sm-6 col-xl-3">
+                    <div class="erp-stat-card stat-danger">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <div class="text-danger small fw-bold text-uppercase">Low Attendance (&lt;75%)</div>
+                                <div class="h3 fw-bold text-danger mb-1 mt-1" th:text="${lowAttendanceCount}">3</div>
+                                <a th:href="@{/admin/reports/low-attendance/pdf}" class="small text-danger text-decoration-none fw-bold">
+                                    <i class="bi bi-file-earmark-pdf-fill me-1"></i>Download Alert PDF
+                                </a>
+                            </div>
+                            <div class="erp-stat-icon bg-danger bg-opacity-10 text-danger">
+                                <i class="bi bi-exclamation-triangle-fill"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Interactive Analytics Charts Row -->
+            <div class="row g-4 mb-4">
+                <div class="col-lg-8">
+                    <div class="erp-card h-100 mb-0">
+                        <div class="erp-card-header">
+                            <h2 class="erp-card-title">
+                                <i class="bi bi-bar-chart-fill text-primary"></i>
+                                Department-wise Attendance % vs Academic Performance %
+                            </h2>
+                            <a th:href="@{/admin/reports/performance/pdf}" class="btn btn-sm btn-outline-primary">
+                                <i class="bi bi-file-earmark-pdf me-1"></i>Export Full PDF Report
+                            </a>
+                        </div>
+                        <div class="p-3">
+                            <canvas id="deptAnalyticsChart" height="115"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-lg-4">
+                    <div class="erp-card h-100 mb-0">
+                        <div class="erp-card-header">
+                            <h2 class="erp-card-title">
+                                <i class="bi bi-pie-chart-fill text-primary"></i>
+                                Attendance Compliance Breakdown
+                            </h2>
+                        </div>
+                        <div class="p-3 d-flex flex-column align-items-center justify-content-center">
+                            <canvas id="attendancePieChart" height="210"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Critical Low Attendance (<75%) Watchlist & Quick Actions -->
+            <div class="row g-4">
+                <div class="col-lg-8">
+                    <div class="erp-card mb-0">
+                        <div class="erp-card-header">
+                            <h2 class="erp-card-title text-danger">
+                                <i class="bi bi-bell-fill text-danger"></i>
+                                Mandatory 75% Attendance Watchlist (Students Flagged for Low Attendance)
+                            </h2>
+                            <span class="badge badge-soft-danger px-3 py-2" th:text="${lowAttendanceCount} + ' Students Below 75%'">3 Flagged</span>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="table table-hover table-erp mb-0">
+                                <thead>
+                                <tr>
+                                    <th>Roll No</th>
+                                    <th>Student Name</th>
+                                    <th>Dept / Sem</th>
+                                    <th>Attendance %</th>
+                                    <th>Avg Marks</th>
+                                    <th>Alert Status</th>
+                                    <th>Action</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                <tr th:each="perf : ${lowAttendanceList}">
+                                    <td class="fw-bold text-primary" th:text="${perf.student.rollNumber}">STU003</td>
+                                    <td>
+                                        <div class="fw-semibold" th:text="${perf.student.fullName}">Rohan Gupta</div>
+                                        <div class="text-muted small" th:text="${perf.student.email}">email</div>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-secondary" th:text="${perf.student.department.code}">CSE</span>
+                                        <span class="small text-muted ms-1" th:text="'Sem ' + ${perf.student.semester}">Sem 5</span>
+                                    </td>
+                                    <td>
+                                        <span class="fw-bold text-danger" th:text="${perf.attendancePercentage} + '%'">60.0%</span>
+                                        <div class="progress mt-1" style="height: 5px;">
+                                            <div class="progress-bar bg-danger" role="progressbar"
+                                                 th:style="'width: ' + ${perf.attendancePercentage} + '%'"></div>
+                                        </div>
+                                    </td>
+                                    <td class="fw-semibold" th:text="${perf.averagePercentage} + '% (' + ${perf.overallGrade} + ')'">65%</td>
+                                    <td>
+                                        <span class="badge badge-soft-danger">
+                                            <i class="bi bi-exclamation-circle-fill me-1"></i>CRITICAL (&lt;75%)
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <a th:href="@{/admin/students/view/{id}(id=${perf.student.id})}" class="btn btn-sm btn-outline-primary">
+                                            <i class="bi bi-eye"></i> Profile
+                                        </a>
+                                    </td>
+                                </tr>
+                                <tr th:if="${#lists.isEmpty(lowAttendanceList)}">
+                                    <td colspan="7" class="text-center text-muted py-4">
+                                        <i class="bi bi-check-circle-fill text-success me-1"></i>
+                                        All students currently meet the 75% minimum attendance requirement.
+                                    </td>
+                                </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recent Notices & Upcoming Exams -->
+                <div class="col-lg-4">
+                    <div class="erp-card">
+                        <div class="erp-card-header">
+                            <h2 class="erp-card-title">
+                                <i class="bi bi-megaphone-fill text-primary"></i>
+                                University Notice Board
+                            </h2>
+                            <a th:href="@{/admin/notices}" class="btn btn-sm btn-link text-decoration-none p-0">Manage</a>
+                        </div>
+                        <div class="p-3">
+                            <div th:each="notice : ${recentNotices}" class="border-bottom pb-2 mb-2">
+                                <div class="d-flex justify-content-between align-items-center mb-1">
+                                    <span class="badge badge-soft-primary" style="font-size: 0.7rem;" th:text="${notice.category}">ACADEMIC</span>
+                                    <small class="text-muted" th:text="${#temporals.format(notice.publishedDate, 'dd MMM yyyy')}">Date</small>
+                                </div>
+                                <div class="fw-semibold small text-dark" th:text="${notice.title}">Title</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="erp-card mb-0">
+                        <div class="erp-card-header">
+                            <h2 class="erp-card-title">
+                                <i class="bi bi-calendar-event-fill text-primary"></i>
+                                Upcoming Examinations
+                            </h2>
+                            <a th:href="@{/admin/schedule}" class="btn btn-sm btn-link text-decoration-none p-0">Schedule</a>
+                        </div>
+                        <div class="p-3">
+                            <div th:each="exam : ${upcomingExams}" class="d-flex justify-content-between align-items-center border-bottom pb-2 mb-2">
+                                <div>
+                                    <div class="fw-semibold small" th:text="${exam.subject.code} + ' - ' + ${exam.subject.name}">CS501</div>
+                                    <div class="text-muted" style="font-size: 0.75rem;" th:text="${exam.name} + ' • Room ' + ${exam.roomNumber}">Exam</div>
+                                </div>
+                                <span class="badge bg-light text-dark border" th:text="${#temporals.format(exam.examDate, 'dd MMM')}">22 Nov</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+</div>
+
+<div th:replace="~{fragments/layout :: scripts}"></div>
+<script th:inline="javascript">
+    const deptLabels = /*[[${deptNames}]]*/ ['CSE', 'ECE', 'MECH'];
+    const deptAttendance = /*[[${deptAvgAttendance}]]*/ [82, 78, 88];
+    const deptMarks = /*[[${deptAvgMarks}]]*/ [79, 75, 81];
+
+    const highAtt = /*[[${highAttCount}]]*/ 5;
+    const modAtt = /*[[${moderateAttCount}]]*/ 1;
+    const critAtt = /*[[${criticalAttCount}]]*/ 3;
+
+    new Chart(document.getElementById('deptAnalyticsChart'), {
+        type: 'bar',
+        data: {
+            labels: deptLabels,
+            datasets: [
+                {
+                    label: 'Avg Attendance %',
+                    data: deptAttendance,
+                    backgroundColor: '#1d5d9b',
+                    borderRadius: 6
+                },
+                {
+                    label: 'Avg Marks %',
+                    data: deptMarks,
+                    backgroundColor: '#38bdf8',
+                    borderRadius: 6
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                y: { beginAtZero: true, max: 100 }
+            }
+        }
+    });
+
+    new Chart(document.getElementById('attendancePieChart'), {
+        type: 'doughnut',
+        data: {
+            labels: ['Good (>=85%)', 'Borderline (75-84%)', 'Critical (<75% Alert)'],
+            datasets: [{
+                data: [highAtt, modAtt, critAtt],
+                backgroundColor: ['#15803d', '#f59e0b', '#dc2626'],
+                borderWidth: 2
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: { position: 'bottom' }
+            }
+        }
+    });
+</script>
+</body>
+</html>
+

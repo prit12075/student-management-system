@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head th:replace="~{fragments/layout :: head('Student Performance Analytics')}"></head>
+<body>
+<div class="erp-wrapper">
+    <aside th:replace="~{fragments/layout :: facultySidebar('performance')}"></aside>
+
+    <div class="erp-main">
+        <header th:replace="~{fragments/layout :: topbar('Class Performance & Attendance Analytics', 'Analyze Student Progress, Low Attendance Alerts & Grade Distribution')}"></header>
+
+        <main class="erp-content">
+            <!-- Subject Filter & PDF Download -->
+            <div class="erp-card">
+                <div class="p-3 d-flex flex-wrap justify-content-between align-items-center gap-3">
+                    <form th:action="@{/faculty/performance}" method="get" class="d-flex align-items-center gap-2">
+                        <label class="small fw-semibold text-secondary mb-0">Select Subject:</label>
+                        <select name="subjectId" class="form-select form-select-sm" style="width: 340px;" onchange="this.form.submit()">
+                            <option th:each="sub : ${assignedSubjects}" th:value="${sub.id}"
+                                    th:text="${sub.code + ' - ' + sub.name}"
+                                    th:selected="${selectedSubject != null and selectedSubject.id == sub.id}"></option>
+                        </select>
+                    </form>
+
+                    <a th:if="${selectedSubject != null}"
+                       th:href="@{/faculty/reports/attendance/pdf(subjectId=${selectedSubject.id})}"
+                       class="btn btn-sm btn-primary">
+                        <i class="bi bi-file-earmark-pdf-fill me-1"></i>Download Subject Attendance PDF Report
+                    </a>
+                </div>
+            </div>
+
+            <!-- Interactive Chart -->
+            <div th:if="${selectedSubject != null}" class="erp-card">
+                <div class="erp-card-header">
+                    <h2 class="erp-card-title">
+                        <i class="bi bi-bar-chart-steps text-primary"></i>
+                        Attendance % vs Marks % for <span class="text-primary" th:text="${selectedSubject.code}">CS501</span>
+                    </h2>
+                </div>
+                <div class="p-3">
+                    <canvas id="subjectPerformanceChart" height="95"></canvas>
+                </div>
+            </div>
+
+            <!-- Detailed Roster Table -->
+            <div th:if="${selectedSubject != null}" class="erp-card mb-0">
+                <div class="erp-card-header">
+                    <h2 class="erp-card-title"><i class="bi bi-people-fill text-primary"></i> Student Evaluation &amp; Attendance Roster</h2>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-hover table-erp mb-0">
+                        <thead>
+                        <tr>
+                            <th>Roll No</th>
+                            <th>Student Name</th>
+                            <th>Attended</th>
+                            <th>Attendance %</th>
+                            <th>Internal (30)</th>
+                            <th>Assign (20)</th>
+                            <th>Practical (20)</th>
+                            <th>External (30)</th>
+                            <th>Total (100)</th>
+                            <th>Grade</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr th:each="att : ${attSummaries}" th:with="m=${marksMap[att.student.id]}">
+                            <td class="fw-bold text-primary" th:text="${att.student.rollNumber}">STU001</td>
+                            <td class="fw-semibold" th:text="${att.student.fullName}">Aarav Sharma</td>
+                            <td th:text="${att.presentCount + ' / ' + att.totalClasses}">9 / 10</td>
+                            <td>
+                                <span class="fw-bold"
+                                      th:classappend="${att.lowAttendance} ? 'text-danger' : 'text-success'"
+                                      th:text="${att.attendancePercentage + '%'}">90%</span>
+                                <span th:if="${att.lowAttendance}" class="badge badge-soft-danger ms-1">&lt;75%</span>
+                            </td>
+                            <td th:text="${m != null ? m.internalMarks : '-'}">28</td>
+                            <td th:text="${m != null ? m.assignmentMarks : '-'}">19</td>
+                            <td th:text="${m != null ? m.practicalMarks : '-'}">19</td>
+                            <td th:text="${m != null ? m.externalMarks : '-'}">27</td>
+                            <td class="fw-bold" th:text="${m != null ? m.totalMarks : '-'}">93</td>
+                            <td>
+                                <span th:if="${m != null}" class="badge"
+                                      th:classappend="${m.resultStatus == 'PASS'} ? 'badge-soft-success' : 'badge-soft-danger'"
+                                      th:text="${m.grade + ' (' + m.resultStatus + ')'}">O (PASS)</span>
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+    </div>
+</div>
+<div th:replace="~{fragments/layout :: scripts}"></div>
+<script th:inline="javascript">
+    const labels = /*[[${studentLabels}]]*/ [];
+    const attData = /*[[${studentAttList}]]*/ [];
+    const marksData = /*[[${studentMarksList}]]*/ [];
+
+    if (document.getElementById('subjectPerformanceChart')) {
+        new Chart(document.getElementById('subjectPerformanceChart'), {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [
+                    {
+                        label: 'Attendance %',
+                        data: attData,
+                        backgroundColor: attData.map(v => v < 75 ? '#dc2626' : '#1d5d9b'),
+                        borderRadius: 5
+                    },
+                    {
+                        label: 'Total Marks %',
+                        data: marksData,
+                        backgroundColor: '#15803d',
+                        borderRadius: 5
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                scales: { y: { beginAtZero: true, max: 100 } }
+            }
+        });
+    }
+</script>
+</body>
+</html>
+

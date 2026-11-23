@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head th:replace="~{fragments/layout :: head('Notifications')}"></head>
+<body>
+<div class="erp-wrapper">
+    <aside th:replace="~{fragments/layout :: studentSidebar('notifications')}"></aside>
+    <div class="erp-main">
+        <header th:replace="~{fragments/layout :: topbar('My Notifications', 'Automatic alerts from the attendance engine, results and exam seating')}"></header>
+        <main class="erp-content">
+            <div class="erp-card mb-0">
+                <div class="erp-card-header d-flex justify-content-between">
+                    <h2 class="erp-card-title"><i class="bi bi-bell-fill text-warning"></i>Inbox <span class="badge bg-danger ms-2" th:text="${unreadCount} + ' unread'">0</span></h2>
+                    <form th:action="@{/student/notifications/read}" method="post"><button class="btn btn-sm btn-outline-primary">Mark all as read</button></form>
+                </div>
+                <div class="list-group list-group-flush">
+                    <div class="list-group-item py-3" th:each="n : ${items}" th:classappend="${smart.isRead(n.id())} ? '' : 'bg-light'">
+                        <div class="d-flex justify-content-between">
+                            <div>
+                                <span class="badge me-2" th:classappend="'bg-' + ${n.colour()}" th:text="${n.type()}">TYPE</span>
+                                <span class="fw-bold" th:text="${n.title()}">title</span>
+                                <span class="badge bg-primary ms-1" th:unless="${smart.isRead(n.id())}">NEW</span>
+                            </div>
+                            <span class="small text-muted" th:text="${#temporals.format(n.createdAt(), 'dd MMM HH:mm')}">time</span>
+                        </div>
+                        <div class="small mt-1" th:text="${n.message()}">message</div>
+                    </div>
+                    <div class="list-group-item text-muted text-center py-4" th:if="${#lists.isEmpty(items)}">No notifications yet.</div>
+                </div>
+            </div>
+        </main>
+    </div>
+</div>
+<div th:replace="~{fragments/layout :: scripts}"></div>
+</body>
+</html>

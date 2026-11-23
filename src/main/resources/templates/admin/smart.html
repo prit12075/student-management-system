@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head th:replace="~{fragments/layout :: head('Smart Campus')}"></head>
+<body>
+<div class="erp-wrapper">
+    <aside th:replace="~{fragments/layout :: adminSidebar('smart')}"></aside>
+    <div class="erp-main">
+        <header th:replace="~{fragments/layout :: topbar('Smart Campus', 'Early-warning risk radar • Anti-malpractice seating • Automatic alerts • Tamper-proof marksheets')}"></header>
+        <main class="erp-content">
+            <div th:replace="~{fragments/layout :: flashMessages}"></div>
+
+            <ul class="nav nav-pills lab-tabs mb-4 gap-2 flex-wrap">
+                <li class="nav-item"><a class="nav-link" th:classappend="${tab == 'risk'} ? 'active'" th:href="@{/admin/smart(tab='risk')}"><i class="bi bi-radar me-1"></i>Academic Risk Radar</a></li>
+                <li class="nav-item"><a class="nav-link" th:classappend="${tab == 'seating'} ? 'active'" th:href="@{/admin/smart(tab='seating')}"><i class="bi bi-grid-3x3-gap-fill me-1"></i>Exam Seating Plan</a></li>
+                <li class="nav-item"><a class="nav-link" th:classappend="${tab == 'alerts'} ? 'active'" th:href="@{/admin/smart(tab='alerts')}"><i class="bi bi-bell-fill me-1"></i>Automatic Alert Engine</a></li>
+                <li class="nav-item"><a class="nav-link" th:classappend="${tab == 'verify'} ? 'active'" th:href="@{/admin/smart(tab='verify')}"><i class="bi bi-patch-check-fill me-1"></i>Marksheet Verification</a></li>
+            </ul>
+
+            <!-- ============ RISK RADAR (Prit) ============ -->
+            <div th:if="${tab == 'risk'}">
+                <div class="row g-3 mb-3">
+                    <div class="col-md-3" th:each="e : ${riskSummary}">
+                        <div class="erp-stat-card h-100">
+                            <div class="small text-muted text-uppercase fw-semibold" th:text="${e.key} + ' risk'">LOW</div>
+                            <div class="h3 fw-bold" th:classappend="'text-' + ${e.key.colour}" th:text="${e.value}">0</div>
+                            <div class="small text-muted" th:text="${e.key.advice}">advice</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="erp-card mb-0">
+                    <div class="erp-card-header"><h2 class="erp-card-title"><i class="bi bi-radar text-danger"></i>Early-warning list — highest risk first <span class="badge bg-light text-dark border ms-2">Prit Patel • novel feature</span></h2></div>
+                    <div class="px-3 pt-3 small text-muted">Score 0–100 = weighted sum of pluggable <code>RiskFactor</code> lambdas:
+                        <span class="font-monospace" th:text="${riskFactors}">factors</span>. Weights: attendance 40%, marks 25%, backlogs 25%, borderline subjects 10%.</div>
+                    <div class="table-responsive">
+                        <table class="table table-hover table-erp mb-0 align-middle">
+                            <thead><tr><th>Roll</th><th>Student</th><th>Dept</th><th>Attendance</th><th>Average</th><th>SGPA</th><th style="width:200px">Risk score</th><th>Level</th><th>Why</th></tr></thead>
+                            <tbody>
+                            <tr th:each="r : ${risk}">
+                                <td class="fw-bold text-primary" th:text="${r.rollNumber()}">r</td>
+                                <td th:text="${r.name()}">n</td>
+                                <td th:text="${r.department()}">d</td>
+                                <td th:text="${r.attendance()} + '%'">a</td>
+                                <td th:text="${r.average()} + '%'">m</td>
+                                <td th:text="${r.sgpa()}">s</td>
+                                <td>
+                                    <div class="progress" style="height:10px"><div class="progress-bar" th:classappend="'bg-' + ${r.level().colour}" th:style="'width:' + ${r.score()} + '%'"></div></div>
+                                    <div class="small fw-semibold mt-1" th:text="${r.score()} + ' / 100'">0</div>
+                                </td>
+                                <td><span class="badge" th:classappend="'bg-' + ${r.level().colour}" th:text="${r.level()}">LOW</span></td>
+                                <td class="small" th:text="${#strings.listJoin(r.reasons(), ', ')}">reasons</td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ============ SEATING (Arindam) ============ -->
+            <div th:if="${tab == 'seating'}">
+                <div class="erp-card">
+                    <div class="erp-card-header"><h2 class="erp-card-title"><i class="bi bi-grid-3x3-gap-fill text-primary"></i>Anti-malpractice seating generator <span class="badge bg-light text-dark border ms-2">Arindam • novel feature</span></h2></div>
+                    <form th:action="@{/admin/smart/seating}" method="post" class="p-3 row g-2 align-items-end">
+                        <div class="col-md-4"><label class="small fw-semibold">Examination</label><input name="examName" class="form-control form-control-sm" value="End-Semester Examination Nov 2026"></div>
+                        <div class="col-md-2"><label class="small fw-semibold">Halls</label><input type="number" name="rooms" min="1" max="10" value="2" class="form-control form-control-sm"></div>
+                        <div class="col-md-2"><label class="small fw-semibold">Rows per hall</label><input type="number" name="rows" min="1" max="12" value="3" class="form-control form-control-sm"></div>
+                        <div class="col-md-2"><label class="small fw-semibold">Seats per row</label><input type="number" name="cols" min="1" max="12" value="4" class="form-control form-control-sm"></div>
+                        <div class="col-md-2"><button class="btn btn-primary btn-sm w-100"><i class="bi bi-magic me-1"></i>Generate</button></div>
+                        <div class="col-12 small text-muted">Students of the same department never sit side by side or one behind another. The plan is saved to SQLite (JDBC batch + transaction), printed on each hall ticket, and announced in every student's inbox.</div>
+                    </form>
+                </div>
+                <div th:if="${plan != null}">
+                    <div class="d-flex gap-2 flex-wrap mb-3 small">
+                        <span class="badge bg-primary" th:text="${plan.examName()}">exam</span>
+                        <span class="badge bg-success" th:text="${plan.seated()} + ' seated / ' + ${plan.capacity()} + ' seats'">x</span>
+                        <span class="badge" th:classappend="${plan.sameDepartmentNeighbours() == 0} ? 'bg-success' : 'bg-danger'" th:text="${plan.sameDepartmentNeighbours()} + ' same-department neighbours'">0</span>
+                        <span class="badge bg-secondary" th:if="${!#lists.isEmpty(plan.unseated())}" th:text="'Unseated: ' + ${plan.unseated()}">u</span>
+                    </div>
+                    <div class="row g-3">
+                        <div class="col-lg-6" th:each="g : ${plan.grids()}">
+                            <div class="erp-card h-100">
+                                <div class="erp-card-header"><h2 class="erp-card-title"><i class="bi bi-door-open-fill text-primary"></i><span th:text="${g.key}">HALL</span> <span class="small text-muted ms-2">(front of hall ↑)</span></h2></div>
+                                <div class="p-3">
+                                    <div class="seat-row" th:each="row, rs : ${g.value}">
+                                        <div class="seat" th:each="seat, cs : ${row}" th:classappend="${seat == null} ? 'seat-empty' : 'dept-' + ${seat.department()}">
+                                            <div class="seat-label" th:text="${T(java.lang.Character).toString(65 + rs.index)} + ${cs.count}">A1</div>
+                                            <div th:if="${seat != null}" class="fw-bold" th:text="${seat.rollNumber()}">roll</div>
+                                            <div th:if="${seat != null}" class="small" th:text="${seat.department()}">dept</div>
+                                            <div th:if="${seat == null}" class="small text-muted">empty</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="alert alert-info" th:if="${plan == null}">No plan generated in this session yet — choose the halls and press Generate.</div>
+            </div>
+
+            <!-- ============ ALERTS (Vivekanand) ============ -->
+            <div th:if="${tab == 'alerts'}">
+                <div class="row g-3 mb-3">
+                    <div class="col-md-3"><div class="erp-stat-card h-100"><div class="small text-muted text-uppercase fw-semibold">Scheduler</div><div class="h4 fw-bold" th:classappend="${scheduler.running} ? 'text-success' : 'text-danger'" th:text="${scheduler.running} ? 'RUNNING' : 'STOPPED'">RUNNING</div><div class="small text-muted" th:text="'every ' + ${scheduler.periodSeconds} + ' s on a daemon thread'">period</div></div></div>
+                    <div class="col-md-3"><div class="erp-stat-card stat-success h-100"><div class="small text-muted text-uppercase fw-semibold">Scans completed</div><div class="h3 fw-bold" th:text="${scheduler.scans}">0</div><div class="small text-muted font-monospace" th:text="'last: ' + ${scheduler.lastScanAt} + ' on ' + ${scheduler.lastScanThread}">last</div></div></div>
+                    <div class="col-md-3"><div class="erp-stat-card stat-warning h-100"><div class="small text-muted text-uppercase fw-semibold">Attendance alerts raised</div><div class="h3 fw-bold" th:text="${scheduler.alertsRaised}">0</div></div></div>
+                    <div class="col-md-3"><div class="erp-stat-card stat-danger h-100"><div class="small text-muted text-uppercase fw-semibold">Notifications delivered</div><div class="h3 fw-bold" th:text="${notificationsSent}">0</div></div></div>
+                </div>
+                <div class="erp-card mb-0">
+                    <div class="erp-card-header d-flex justify-content-between flex-wrap gap-2">
+                        <h2 class="erp-card-title"><i class="bi bi-bell-fill text-warning"></i>Live notification feed <span class="badge bg-light text-dark border ms-2">Vivekanand • novel feature</span></h2>
+                        <form th:action="@{/admin/smart/alerts/scan}" method="post"><button class="btn btn-sm btn-warning"><i class="bi bi-arrow-repeat me-1"></i>Run scan now</button></form>
+                    </div>
+                    <div class="px-3 pt-3 small text-muted">A <code>ScheduledExecutorService</code> scans attendance in the background and writes to a lock-free <code>NotificationCenter</code> (ConcurrentHashMap + CopyOnWriteArrayList). Faculty marks publishing and seat allotment also push notifications.</div>
+                    <pre class="lab-code m-3" style="max-height:380px;overflow:auto"><span th:each="l : ${recentNotifications}" th:text="${l} + '&#10;'">l</span><span th:if="${#lists.isEmpty(recentNotifications)}">No notifications yet - the first background scan runs a few seconds after start-up.</span></pre>
+                </div>
+            </div>
+
+            <!-- ============ VERIFY (Anjay) ============ -->
+            <div th:if="${tab == 'verify'}">
+                <div class="erp-card">
+                    <div class="erp-card-header"><h2 class="erp-card-title"><i class="bi bi-patch-check-fill text-success"></i>Tamper-proof marksheets <span class="badge bg-light text-dark border ms-2">Anjay • novel feature</span></h2></div>
+                    <div class="p-3">
+                        <p class="small">Every marksheet PDF carries a 16-character <b>HMAC-SHA256</b> code sealed over the roll number, every subject total and grade, and the SGPA. Anyone can check a marksheet on the public page <a th:href="@{/verify}" target="_blank">/verify</a> without logging in. Changing even one mark changes the code.</p>
+                        <pre class="lab-code mb-3">DataOutputStream → canonical bytes (roll, sorted subjects, totals, grades, SGPA)
+Mac.getInstance("HmacSHA256").doFinal(bytes) → first 8 bytes → XXXX-XXXX-XXXX-XXXX
+MessageDigest.isEqual(expected, provided)   // constant-time comparison</pre>
+                        <a class="btn btn-success btn-sm" th:href="@{/verify}" target="_blank"><i class="bi bi-box-arrow-up-right me-1"></i>Open public verification portal</a>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+</div>
+<div th:replace="~{fragments/layout :: scripts}"></div>
+</body>
+</html>

@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head th:replace="~{fragments/layout :: head('Goal Planner & Risk')}"></head>
+<body>
+<div class="erp-wrapper">
+    <aside th:replace="~{fragments/layout :: studentSidebar('planner')}"></aside>
+    <div class="erp-main">
+        <header th:replace="~{fragments/layout :: topbar('SGPA Goal Planner & Academic Risk', 'See your early-warning score and plan the marks you need')}"></header>
+        <main class="erp-content">
+            <div class="row g-3 mb-3">
+                <div class="col-lg-4">
+                    <div class="erp-card h-100 mb-0">
+                        <div class="erp-card-header"><h2 class="erp-card-title"><i class="bi bi-radar text-danger"></i>My risk score</h2></div>
+                        <div class="p-3">
+                            <div class="display-6 fw-bold" th:classappend="'text-' + ${risk.level().colour}" th:text="${risk.score()}">0</div>
+                            <div class="small text-muted mb-2">out of 100</div>
+                            <span class="badge fs-6 mb-2" th:classappend="'bg-' + ${risk.level().colour}" th:text="${risk.level()}">LOW</span>
+                            <div class="small fw-semibold" th:text="${risk.level().advice}">advice</div>
+                            <ul class="small mt-2 mb-0"><li th:each="r : ${risk.reasons()}" th:text="${r}">reason</li></ul>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-4">
+                    <div class="erp-stat-card h-100 stat-success">
+                        <div class="small text-muted text-uppercase fw-semibold">Projected SGPA (what-if)</div>
+                        <div class="display-6 fw-bold text-success" th:text="${projection.sgpa()}">9.0</div>
+                        <div class="small text-muted" th:text="'Current SGPA: ' + ${performance.sgpa}">current</div>
+                    </div>
+                </div>
+                <div class="col-lg-4">
+                    <div class="erp-stat-card h-100 stat-warning">
+                        <div class="small text-muted text-uppercase fw-semibold" th:text="'To reach SGPA ' + ${target}">target</div>
+                        <div class="display-6 fw-bold" th:text="${requiredPct < 0} ? 'Not possible' : ('≥ ' + ${requiredPct} + '%')">80%</div>
+                        <div class="small text-muted">needed in every subject (credit-weighted)</div>
+                    </div>
+                </div>
+            </div>
+            <form th:action="@{/student/planner}" method="get" class="erp-card mb-0">
+                <div class="erp-card-header d-flex justify-content-between flex-wrap gap-2">
+                    <h2 class="erp-card-title"><i class="bi bi-sliders text-primary"></i>What-if: change the expected percentage per subject</h2>
+                    <div class="d-flex gap-2 align-items-center">
+                        <label class="small fw-semibold">Target SGPA</label>
+                        <input type="number" step="0.1" min="0" max="10" name="target" th:value="${target}" class="form-control form-control-sm" style="width:90px">
+                        <button class="btn btn-sm btn-primary"><i class="bi bi-calculator me-1"></i>Recalculate</button>
+                    </div>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-erp mb-0 align-middle">
+                        <thead><tr><th>Subject</th><th>Credits</th><th>Current %</th><th style="width:160px">Expected %</th><th>Projected grade</th><th>Points</th></tr></thead>
+                        <tbody>
+                        <tr th:each="row, st : ${rows}">
+                            <td><span class="fw-bold text-primary" th:text="${row.code()}">CS</span> <span class="small" th:text="${row.name()}">name</span></td>
+                            <td th:text="${row.credits()}">4</td>
+                            <td th:text="${row.current()}">90</td>
+                            <td><input type="number" step="0.5" min="0" max="100" class="form-control form-control-sm" th:name="'exp_' + ${st.index}" th:value="${expected[st.index]}"></td>
+                            <td><span class="badge" th:classappend="${projection.grades()[st.index].pass} ? 'bg-success' : 'bg-danger'" th:text="${projection.grades()[st.index].label}">A</span></td>
+                            <td th:text="${projection.grades()[st.index].gradePoints}">8</td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </form>
+        </main>
+    </div>
+</div>
+<div th:replace="~{fragments/layout :: scripts}"></div>
+</body>
+</html>

@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head th:replace="~{fragments/layout :: head('Verify a Marksheet')}"></head>
+<body style="background:#eef2f7">
+<div class="verify-shell px-3">
+    <div class="text-center mb-4">
+        <div class="h3 fw-bold text-primary mb-0"><i class="bi bi-mortarboard-fill me-2"></i>APEX UNIVERSITY</div>
+        <div class="text-muted">Public marksheet verification portal — no login required</div>
+    </div>
+    <div class="erp-card">
+        <form th:action="@{/verify}" method="get" class="p-4">
+            <div class="mb-3"><label class="form-label fw-semibold">Roll number</label>
+                <input name="roll" class="form-control" placeholder="e.g. STU2026001" th:value="${roll}" required></div>
+            <div class="mb-3"><label class="form-label fw-semibold">Verification code (printed on the marksheet)</label>
+                <input name="code" class="form-control font-monospace" placeholder="XXXX-XXXX-XXXX-XXXX" th:value="${code}" required></div>
+            <button class="btn btn-primary w-100"><i class="bi bi-shield-check me-1"></i>Verify marksheet</button>
+        </form>
+    </div>
+    <div th:if="${result != null}" class="erp-card" th:classappend="${result.valid} ? 'border-success' : 'border-danger'">
+        <div class="p-4">
+            <div class="h5 fw-bold" th:classappend="${result.valid} ? 'text-success' : 'text-danger'">
+                <i class="bi" th:classappend="${result.valid} ? 'bi-patch-check-fill' : 'bi-x-octagon-fill'"></i>
+                <span th:text="${result.status()}">VALID</span>
+            </div>
+            <p class="mb-2" th:text="${result.message()}">message</p>
+            <table class="table table-sm mb-0" th:if="${result.valid}">
+                <tr><th>Name</th><td th:text="${result.studentName()}">n</td></tr>
+                <tr><th>Roll number</th><td th:text="${result.rollNumber()}">r</td></tr>
+                <tr><th>Department</th><td th:text="${result.department()}">d</td></tr>
+                <tr><th>SGPA</th><td class="fw-bold" th:text="${result.sgpa()}">9</td></tr>
+                <tr><th>Subjects on record</th><td th:text="${result.subjects()}">5</td></tr>
+            </table>
+        </div>
+    </div>
+    <div class="text-center small"><a th:href="@{/login}">← Back to ERP login</a></div>
+</div>
+</body>
+</html>

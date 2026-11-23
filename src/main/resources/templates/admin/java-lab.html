@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head th:replace="~{fragments/layout :: head('Java Lab Console')}"></head>
+<body>
+<div class="erp-wrapper">
+    <aside th:replace="~{fragments/layout :: adminSidebar('javalab')}"></aside>
+
+    <div class="erp-main">
+        <header th:replace="~{fragments/layout :: topbar('Java Lab Console', 'Every Unit 1–5 Java concept running as a real ERP feature • Team module ownership')}"></header>
+
+        <main class="erp-content">
+            <div th:replace="~{fragments/layout :: flashMessages}"></div>
+
+            <ul class="nav nav-pills lab-tabs mb-4 gap-2 flex-wrap">
+                <li class="nav-item"><a class="nav-link" th:classappend="${tab == 'overview'} ? 'active'" th:href="@{/admin/java-lab(tab='overview')}"><i class="bi bi-diagram-3-fill me-1"></i>Overview</a></li>
+                <li class="nav-item"><a class="nav-link" th:classappend="${tab == 'grading'} ? 'active'" th:href="@{/admin/java-lab(tab='grading')}"><i class="bi bi-sliders me-1"></i>Polymorphic Grading</a></li>
+                <li class="nav-item"><a class="nav-link" th:classappend="${tab == 'collections'} ? 'active'" th:href="@{/admin/java-lab(tab='collections')}"><i class="bi bi-collection-fill me-1"></i>Collections Analytics</a></li>
+                <li class="nav-item"><a class="nav-link" th:classappend="${tab == 'io'} ? 'active'" th:href="@{/admin/java-lab(tab='io')}"><i class="bi bi-file-earmark-arrow-down-fill me-1"></i>I/O &amp; Exceptions</a></li>
+                <li class="nav-item"><a class="nav-link" th:classappend="${tab == 'threads'} ? 'active'" th:href="@{/admin/java-lab(tab='threads')}"><i class="bi bi-cpu-fill me-1"></i>Multithreading</a></li>
+                <li class="nav-item"><a class="nav-link" th:classappend="${tab == 'jdbc'} ? 'active'" th:href="@{/admin/java-lab(tab='jdbc')}"><i class="bi bi-database-fill me-1"></i>JDBC Archive</a></li>
+                <li class="nav-item"><a class="nav-link" th:classappend="${tab == 'desktop'} ? 'active'" th:href="@{/admin/java-lab(tab='desktop')}"><i class="bi bi-window-stack me-1"></i>Desktop (AWT / JavaFX)</a></li>
+            </ul>
+
+            <!-- ======================= OVERVIEW ======================= -->
+            <div th:if="${tab == 'overview'}">
+                <div class="row g-3 mb-4">
+                    <div class="col-md-3" th:each="m : ${ {'Prit Patel','Anjay','Vivekanand','Arindam'} }">
+                        <div class="erp-stat-card h-100">
+                            <div class="text-muted small fw-semibold text-uppercase">Module owner</div>
+                            <div class="h5 fw-bold mt-1 mb-1" th:text="${m}">Name</div>
+                            <div class="small text-muted"
+                                 th:text="${m == 'Prit Patel'} ? 'Unit 1 OOP • Unit 2 Polymorphism • Unit 5 Generics' : (${m == 'Anjay'} ? 'Unit 2 Exceptions • Unit 3 I/O Streams' : (${m == 'Vivekanand'} ? 'Unit 3 Multithreading • Unit 3 AWT Events' : 'Unit 4 JDBC • Unit 4 Collections • Unit 5 JavaFX'))">units</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="erp-card mb-0">
+                    <div class="erp-card-header">
+                        <h2 class="erp-card-title"><i class="bi bi-diagram-3-fill text-primary"></i>Syllabus coverage map (CSE 309 Units 1–5)</h2>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-hover table-erp mb-0 align-middle">
+                            <thead><tr><th>Unit</th><th>Java concepts</th><th>Owner</th><th>Classes</th><th>Feature in the ERP</th></tr></thead>
+                            <tbody>
+                            <tr th:each="c : ${conceptMap}">
+                                <td><span class="badge bg-primary" th:text="${c.unit()}">Unit</span></td>
+                                <td class="small" th:text="${c.concept()}">concept</td>
+                                <td class="fw-semibold" th:text="${c.member()}">member</td>
+                                <td class="small font-monospace" th:text="${c.classes()}">classes</td>
+                                <td class="small" th:text="${c.feature()}">feature</td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ======================= GRADING (Prit) ======================= -->
+            <div th:if="${tab == 'grading'}">
+                <div class="erp-card">
+                    <div class="erp-card-header d-flex justify-content-between flex-wrap gap-2">
+                        <h2 class="erp-card-title"><i class="bi bi-sliders text-primary"></i>Grading Policy Simulator <span class="badge bg-light text-dark border ms-2">Prit Patel • Unit 2 runtime polymorphism</span></h2>
+                        <form th:action="@{/admin/java-lab}" method="get" class="d-flex gap-2 align-items-center">
+                            <input type="hidden" name="tab" value="grading">
+                            <select name="policy" class="form-select form-select-sm" onchange="this.form.submit()" style="width:240px">
+                                <option value="absolute" th:selected="${policy == 'absolute'}">AbsoluteGradingPolicy</option>
+                                <option value="relative" th:selected="${policy == 'relative'}">RelativeGradingPolicy</option>
+                                <option value="moderation" th:selected="${policy == 'moderation'}">ModerationGradingPolicy</option>
+                            </select>
+                        </form>
+                    </div>
+                    <div class="p-3">
+                        <p class="mb-2"><span class="fw-bold" th:text="${grading.policyName()}">policy</span> — <span class="text-muted" th:text="${grading.policyDescription()}">desc</span></p>
+                        <pre class="lab-code mb-3">GradingPolicy policy = GradingPolicy.of("<span th:text="${policy}">absolute</span>");   // object type chosen at run time
+List&lt;Grade&gt; grades = policy.assignAll(percentages);          // dynamic method dispatch → <span th:text="${grading.policyName()}">x</span>.assign()</pre>
+                        <div class="d-flex gap-3 flex-wrap small">
+                            <span class="badge bg-info-subtle text-dark border" th:if="${grading.mean() != null}" th:text="'Class mean: ' + ${grading.mean()} + '%'">mean</span>
+                            <span class="badge bg-info-subtle text-dark border" th:if="${grading.stdDev() != null}" th:text="'Std deviation: ' + ${grading.stdDev()}">sd</span>
+                            <span class="badge bg-warning-subtle text-dark border" th:text="${grading.changedCount()} + ' grade(s) differ from the absolute policy'">changed</span>
+                        </div>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-hover table-erp mb-0">
+                            <thead><tr><th>Roll No</th><th>Student</th><th>Dept</th><th>Average %</th><th>Absolute grade</th><th>Simulated grade</th><th>Points</th></tr></thead>
+                            <tbody>
+                            <tr th:each="r : ${grading.rows()}" th:classappend="${r.changed()} ? 'table-warning'">
+                                <td class="fw-bold text-primary" th:text="${r.roll()}">roll</td>
+                                <td th:text="${r.name()}">name</td>
+                                <td th:text="${r.dept()}">dept</td>
+                                <td th:text="${r.percentage()}">0</td>
+                                <td><span class="badge bg-secondary" th:text="${r.absolute().label}">A</span></td>
+                                <td><span class="badge" th:classappend="${r.simulated().pass} ? 'bg-success' : 'bg-danger'" th:text="${r.simulated().label}">A</span></td>
+                                <td th:text="${r.simulated().gradePoints}">8</td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ======================= COLLECTIONS (Arindam) ======================= -->
+            <div th:if="${tab == 'collections'}">
+                <div class="row g-3 mb-3">
+                    <div class="col-md-3"><div class="erp-stat-card h-100"><div class="small text-muted text-uppercase fw-semibold">HashSet • departments</div><div class="h3 fw-bold" th:text="${analytics.distinctDepartments()}">4</div></div></div>
+                    <div class="col-md-3"><div class="erp-stat-card stat-danger h-100"><div class="small text-muted text-uppercase fw-semibold">TreeSet • &lt;75% shortage</div><div class="h3 fw-bold text-danger" th:text="${analytics.shortageRollNumbers().size()}">3</div><div class="small font-monospace" th:text="${analytics.shortageRollNumbers()}">[..]</div></div></div>
+                    <div class="col-md-3"><div class="erp-stat-card stat-success h-100"><div class="small text-muted text-uppercase fw-semibold">Collections.max • SGPA</div><div class="small fw-semibold mt-1" th:text="${analytics.highestSgpa()}">x</div></div></div>
+                    <div class="col-md-3"><div class="erp-stat-card stat-warning h-100"><div class="small text-muted text-uppercase fw-semibold">Collections.min • attendance</div><div class="h5 fw-bold mt-1" th:text="${analytics.lowestAttendance()}">x</div></div></div>
+                </div>
+                <div class="row g-3">
+                    <div class="col-lg-6">
+                        <div class="erp-card h-100">
+                            <div class="erp-card-header"><h2 class="erp-card-title"><i class="bi bi-trophy-fill text-warning"></i>PriorityQueue • Top 5 toppers <span class="badge bg-light text-dark border ms-2">Arindam • Unit 4</span></h2></div>
+                            <ol class="list-group list-group-numbered list-group-flush">
+                                <li class="list-group-item d-flex justify-content-between" th:each="t : ${analytics.toppers()}">
+                                    <span><span class="fw-semibold" th:text="${t.fullName}">name</span> <span class="text-muted small" th:text="${t.roll + ' • ' + t.departmentCode}">roll</span></span>
+                                    <span class="badge bg-success" th:text="'SGPA ' + ${t.sgpa}">9.5</span>
+                                </li>
+                            </ol>
+                        </div>
+                    </div>
+                    <div class="col-lg-6">
+                        <div class="erp-card h-100">
+                            <div class="erp-card-header"><h2 class="erp-card-title"><i class="bi bi-diagram-2-fill text-primary"></i>TreeMap • department average SGPA</h2></div>
+                            <div class="p-3"><canvas id="deptChart" height="160"></canvas></div>
+                        </div>
+                    </div>
+                    <div class="col-lg-6">
+                        <div class="erp-card h-100">
+                            <div class="erp-card-header"><h2 class="erp-card-title"><i class="bi bi-bar-chart-fill text-primary"></i>EnumMap • grade distribution (all subject marks)</h2></div>
+                            <div class="p-3"><canvas id="gradeChart" height="160"></canvas></div>
+                        </div>
+                    </div>
+                    <div class="col-lg-6">
+                        <div class="erp-card h-100">
+                            <div class="erp-card-header"><h2 class="erp-card-title"><i class="bi bi-list-ol text-primary"></i>LinkedList queue &amp; Iterator.remove()</h2></div>
+                            <div class="p-3 small">
+                                <div class="fw-semibold mb-1">Promotion queue (FIFO, merit order):</div>
+                                <div class="font-monospace mb-3" th:text="${analytics.promotionQueue()}">[]</div>
+                                <div class="fw-semibold mb-1">Detained list after Iterator.remove() filter:</div>
+                                <div class="font-monospace mb-3 text-danger" th:text="${analytics.detainedAfterIteratorFilter()}">[]</div>
+                                <form th:action="@{/admin/java-lab}" method="get" class="d-flex gap-2">
+                                    <input type="hidden" name="tab" value="collections">
+                                    <input name="search" class="form-control form-control-sm" placeholder="Roll number for Collections.binarySearch" th:value="${search}">
+                                    <button class="btn btn-sm btn-primary">Search</button>
+                                </form>
+                                <div class="mt-2" th:if="${analytics.searchedRoll() != ''}">
+                                    <span th:if="${analytics.rankOfSearched() >= 0}" class="text-success" th:text="'Found ' + ${analytics.searchedRoll()} + ' at index ' + ${analytics.rankOfSearched()} + ' of the sorted roll list'">found</span>
+                                    <span th:if="${analytics.rankOfSearched() < 0}" class="text-danger" th:text="${analytics.searchedRoll()} + ' not found (binarySearch returned ' + ${analytics.rankOfSearched()} + ')'">nf</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-12">
+                        <div class="erp-card mb-0">
+                            <div class="erp-card-header"><h2 class="erp-card-title"><i class="bi bi-sort-down text-primary"></i>ArrayList sorted with Comparator chain (SGPA ↓, attendance ↓, roll ↑)</h2></div>
+                            <div class="table-responsive">
+                                <table class="table table-sm table-hover table-erp mb-0">
+                                    <thead><tr><th>Rank</th><th>Roll</th><th>Name</th><th>Dept</th><th>SGPA</th><th>Attendance</th><th>Backlogs</th></tr></thead>
+                                    <tbody>
+                                    <tr th:each="s, st : ${analytics.rankList()}">
+                                        <td class="fw-bold" th:text="${st.count}">1</td>
+                                        <td class="text-primary fw-semibold" th:text="${s.roll}">roll</td>
+                                        <td th:text="${s.fullName}">name</td>
+                                        <td th:text="${s.departmentCode}">d</td>
+                                        <td th:text="${s.sgpa}">9</td>
+                                        <td th:classappend="${s.attendanceShort} ? 'text-danger fw-bold'" th:text="${s.attendancePercentage} + '%'">90%</td>
+                                        <td th:text="${s.backlogs}">0</td>
+                                    </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ======================= I/O + EXCEPTIONS (Anjay) ======================= -->
+            <div th:if="${tab == 'io'}">
+                <div class="row g-3">
+                    <div class="col-lg-6">
+                        <div class="erp-card h-100">
+                            <div class="erp-card-header"><h2 class="erp-card-title"><i class="bi bi-filetype-csv text-success"></i>Character streams • CSV <span class="badge bg-light text-dark border ms-2">Anjay • Unit 3</span></h2></div>
+                            <div class="p-3">
+                                <p class="small text-muted">Export writes through <code>PrintWriter → BufferedWriter → OutputStreamWriter → response stream</code>. Import reads with <code>BufferedReader(InputStreamReader(upload))</code>; each bad line throws a <code>DataImportException</code> that is caught per line.</p>
+                                <div class="d-flex gap-2 flex-wrap mb-3">
+                                    <a class="btn btn-sm btn-success" th:href="@{/admin/java-lab/io/export.csv}"><i class="bi bi-download me-1"></i>Export performance CSV</a>
+                                    <a class="btn btn-sm btn-outline-secondary" th:href="@{/admin/java-lab/io/template.csv}"><i class="bi bi-file-earmark-text me-1"></i>Bulk admission template</a>
+                                </div>
+                                <form th:action="@{/admin/java-lab/io/import}" method="post" enctype="multipart/form-data" class="d-flex gap-2">
+                                    <input type="file" name="file" accept=".csv" class="form-control form-control-sm" required>
+                                    <button class="btn btn-sm btn-primary text-nowrap"><i class="bi bi-upload me-1"></i>Import students</button>
+                                </form>
+                                <div class="mt-3" th:if="${importResult != null}">
+                                    <div class="fw-semibold" th:text="${importResult.summary}">summary</div>
+                                    <ul class="small text-danger mb-0" th:if="${importResult.hasErrors()}">
+                                        <li th:each="e : ${importResult.errors}" th:text="${e}">err</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-6">
+                        <div class="erp-card h-100">
+                            <div class="erp-card-header"><h2 class="erp-card-title"><i class="bi bi-archive-fill text-primary"></i>Byte &amp; object streams • .smsbak backup</h2></div>
+                            <div class="p-3">
+                                <pre class="lab-code">BufferedOutputStream → GZIPOutputStream
+   ├─ DataOutputStream   (magic, version, time, count)
+   └─ ObjectOutputStream (List&lt;StudentRecord&gt;)</pre>
+                                <a class="btn btn-sm btn-primary mb-3" th:href="@{/admin/java-lab/io/backup}"><i class="bi bi-cloud-download me-1"></i>Download serialized backup</a>
+                                <form th:action="@{/admin/java-lab/io/verify-backup}" method="post" enctype="multipart/form-data" class="d-flex gap-2">
+                                    <input type="file" name="file" class="form-control form-control-sm" required>
+                                    <button class="btn btn-sm btn-outline-primary text-nowrap">Verify / deserialize</button>
+                                </form>
+                                <div class="mt-3 small" th:if="${backupContents != null}">
+                                    <div class="fw-semibold" th:text="'Format v' + ${backupContents.version()} + ' • created ' + ${backupContents.createdAt()}">v1</div>
+                                    <ul class="mb-0"><li th:each="s : ${backupContents.students()}" th:text="${s.describe()}">s</li></ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-12">
+                        <div class="erp-card mb-0">
+                            <div class="erp-card-header"><h2 class="erp-card-title"><i class="bi bi-journal-text text-secondary"></i>Audit trail • FileOutputStream (append) + BufferedReader tail</h2></div>
+                            <pre class="lab-code m-3" style="max-height:260px;overflow:auto"><span th:each="l : ${auditLines}" th:text="${l} + '&#10;'">line</span><span th:if="${#lists.isEmpty(auditLines)}">No entries yet.</span></pre>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ======================= THREADS (Vivekanand) ======================= -->
+            <div th:if="${tab == 'threads'}">
+                <form th:action="@{/admin/java-lab/threads/all}" method="post" class="mb-3">
+                    <button class="btn btn-dark btn-sm"><i class="bi bi-collection-play-fill me-1"></i>Run all four thread demos</button>
+                </form>
+                <div class="row g-3 mb-3">
+                    <div class="col-md-3"><div class="erp-stat-card h-100"><div class="small text-muted text-uppercase fw-semibold">Requests served (synchronized)</div><div class="h3 fw-bold" th:text="${monitor.totalRequests}">0</div></div></div>
+                    <div class="col-md-3"><div class="erp-stat-card stat-success h-100"><div class="small text-muted text-uppercase fw-semibold">Peak concurrent (AtomicLong)</div><div class="h3 fw-bold" th:text="${monitor.peakConcurrent}">0</div></div></div>
+                    <div class="col-md-3"><div class="erp-stat-card stat-warning h-100"><div class="small text-muted text-uppercase fw-semibold">Per portal (ConcurrentHashMap)</div><div class="small font-monospace mt-1" th:text="${monitor.perPortalCounts}">{}</div></div></div>
+                    <div class="col-md-3"><div class="erp-stat-card h-100"><div class="small text-muted text-uppercase fw-semibold">Server uptime</div><div class="h3 fw-bold" th:text="${monitor.uptimeSeconds} + ' s'">0</div></div></div>
+                </div>
+                <div class="row g-3">
+                    <div class="col-lg-6">
+                        <div class="erp-card h-100">
+                            <div class="erp-card-header"><h2 class="erp-card-title"><i class="bi bi-lightning-charge-fill text-warning"></i>ExecutorService • parallel report cards <span class="badge bg-light text-dark border ms-2">Vivekanand • Unit 3</span></h2></div>
+                            <div class="p-3">
+                                <form th:action="@{/admin/java-lab/threads/reports}" method="post" class="d-flex gap-2 align-items-center mb-3">
+                                    <label class="small">Pool size</label>
+                                    <select name="threads" class="form-select form-select-sm" style="width:90px"><option>2</option><option selected>4</option><option>8</option></select>
+                                    <button class="btn btn-sm btn-warning"><i class="bi bi-play-fill"></i> Run sequential vs parallel</button>
+                                </form>
+                                <div th:if="${sequentialRun != null}">
+                                    <table class="table table-sm small">
+                                        <tr><th>Mode</th><th>Time</th><th>Threads used</th></tr>
+                                        <tr><td th:text="${sequentialRun.mode()}">seq</td><td th:text="${sequentialRun.elapsedMillis()} + ' ms'">0</td><td class="font-monospace" th:text="${sequentialRun.threadsUsed()}">[]</td></tr>
+                                        <tr class="table-success"><td th:text="${parallelRun.mode()}">par</td><td th:text="${parallelRun.elapsedMillis()} + ' ms'">0</td><td class="font-monospace" th:text="${parallelRun.threadsUsed()}">[]</td></tr>
+                                    </table>
+                                    <div class="fw-bold text-success mb-2" th:text="'Speed-up: ' + ${speedUp}">x</div>
+                                    <div style="max-height:200px;overflow:auto">
+                                        <table class="table table-sm small mb-0">
+                                            <tr><th>Roll</th><th>Verdict</th><th>Worker thread</th></tr>
+                                            <tr th:each="c : ${parallelRun.cards()}"><td th:text="${c.rollNumber()}">r</td><td th:text="${c.verdict()}">v</td><td class="font-monospace" th:text="${c.generatedBy()}">t</td></tr>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-6">
+                        <div class="erp-card h-100">
+                            <div class="erp-card-header"><h2 class="erp-card-title"><i class="bi bi-arrow-left-right text-primary"></i>Producer–consumer • wait() / notifyAll()</h2></div>
+                            <div class="p-3">
+                                <form th:action="@{/admin/java-lab/threads/alerts}" method="post" class="mb-3">
+                                    <button class="btn btn-sm btn-primary"><i class="bi bi-bell-fill me-1"></i>Run attendance alert pipeline</button>
+                                </form>
+                                <pre class="lab-code" style="max-height:260px;overflow:auto" th:if="${alertLog != null}"><span th:each="l : ${alertLog}" th:text="${l} + '&#10;'">l</span></pre>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-6">
+                        <div class="erp-card h-100">
+                            <div class="erp-card-header"><h2 class="erp-card-title"><i class="bi bi-arrow-repeat text-success"></i>Thread life cycle trace</h2></div>
+                            <div class="p-3">
+                                <form th:action="@{/admin/java-lab/threads/lifecycle}" method="post" class="mb-3">
+                                    <button class="btn btn-sm btn-success"><i class="bi bi-play-circle me-1"></i>Trace NEW → TERMINATED</button>
+                                </form>
+                                <pre class="lab-code" th:if="${lifecycle != null}"><span th:each="l : ${lifecycle}" th:text="${l} + '&#10;'">l</span></pre>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-6">
+                        <div class="erp-card h-100">
+                            <div class="erp-card-header"><h2 class="erp-card-title"><i class="bi bi-shield-lock-fill text-danger"></i>Race condition vs synchronized</h2></div>
+                            <div class="p-3">
+                                <form th:action="@{/admin/java-lab/threads/race}" method="post" class="mb-3">
+                                    <button class="btn btn-sm btn-danger"><i class="bi bi-people-fill me-1"></i>8 threads × 50,000 increments</button>
+                                </form>
+                                <table class="table table-sm small" th:if="${raceSafe != null}">
+                                    <tr><th>Expected</th><td th:text="${raceExpected}">400000</td></tr>
+                                    <tr class="table-danger"><th>Unsynchronized count++</th><td th:text="${raceUnsafe}">x</td></tr>
+                                    <tr class="table-success"><th>synchronized incrementTotal()</th><td th:text="${raceSafe}">x</td></tr>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ======================= JDBC (Arindam) ======================= -->
+            <div th:if="${tab == 'jdbc'}">
+                <div class="alert alert-danger" th:if="${archiveError != null}" th:text="${archiveError}">err</div>
+                <div class="row g-3" th:if="${archive != null}">
+                    <div class="col-lg-5">
+                        <div class="erp-card h-100">
+                            <div class="erp-card-header"><h2 class="erp-card-title"><i class="bi bi-database-fill-gear text-primary"></i>SQLite archive • DatabaseMetaData <span class="badge bg-light text-dark border ms-2">Arindam • Unit 4</span></h2></div>
+                            <div class="p-3 small">
+                                <table class="table table-sm">
+                                    <tr><th>Database</th><td th:text="${archive.databaseProduct()} + ' ' + ${archive.databaseVersion()}">SQLite</td></tr>
+                                    <tr><th>Driver</th><td th:text="${archive.driverName()}">driver</td></tr>
+                                    <tr><th>JDBC URL</th><td class="font-monospace text-break" th:text="${archive.jdbcUrl()}">url</td></tr>
+                                    <tr><th>Tables / rows</th><td class="font-monospace" th:text="${archive.rowCounts()}">{}</td></tr>
+                                    <tr><th>Last snapshot</th><td th:text="${archive.lastSnapshotAt()}">never</td></tr>
+                                    <tr><th>File size</th><td th:text="${archive.fileSizeBytes()} + ' bytes'">0</td></tr>
+                                </table>
+                                <div class="d-flex gap-2">
+                                    <form th:action="@{/admin/java-lab/archive/snapshot}" method="post">
+                                        <button class="btn btn-sm btn-primary"><i class="bi bi-camera-fill me-1"></i>Take snapshot (transaction + batch)</button>
+                                    </form>
+                                    <a class="btn btn-sm btn-outline-secondary" th:href="@{/admin/java-lab/archive/download}"><i class="bi bi-download me-1"></i>.db file</a>
+                                </div>
+                                <div class="mt-3 fw-semibold">GROUP BY department → AVG(sgpa):</div>
+                                <div class="font-monospace" th:text="${archiveAverages}">{}</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-7">
+                        <div class="erp-card h-100">
+                            <div class="erp-card-header d-flex justify-content-between flex-wrap gap-2">
+                                <h2 class="erp-card-title"><i class="bi bi-table text-primary"></i>archived_students (PreparedStatement + ResultSet)</h2>
+                                <form th:action="@{/admin/java-lab}" method="get" class="d-flex gap-2">
+                                    <input type="hidden" name="tab" value="jdbc">
+                                    <input name="archiveSearch" class="form-control form-control-sm" placeholder="LIKE search name/roll" th:value="${archiveSearch}">
+                                    <button class="btn btn-sm btn-outline-primary">Query</button>
+                                </form>
+                            </div>
+                            <div class="table-responsive" style="max-height:420px">
+                                <table class="table table-sm table-hover table-erp mb-0">
+                                    <thead><tr><th>Roll</th><th>Name</th><th>Dept</th><th>Att %</th><th>SGPA</th><th>Status</th></tr></thead>
+                                    <tbody>
+                                    <tr th:each="a : ${archivedStudents}">
+                                        <td class="fw-semibold text-primary" th:text="${a.rollNumber()}">r</td>
+                                        <td th:text="${a.fullName()}">n</td>
+                                        <td th:text="${a.department()}">d</td>
+                                        <td th:text="${a.attendance()}">0</td>
+                                        <td th:text="${a.sgpa()}">0</td>
+                                        <td><span class="badge" th:classappend="${a.status() == 'ELIGIBLE'} ? 'bg-success' : 'bg-danger'" th:text="${a.status()}">s</span></td>
+                                    </tr>
+                                    <tr th:if="${#lists.isEmpty(archivedStudents)}"><td colspan="6" class="text-center text-muted py-4">Archive is empty — click “Take snapshot”.</td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ======================= DESKTOP ======================= -->
+            <div th:if="${tab == 'desktop'}">
+                <div class="row g-3">
+                    <div class="col-lg-6">
+                        <div class="erp-card h-100">
+                            <div class="erp-card-header"><h2 class="erp-card-title"><i class="bi bi-window text-primary"></i>AWT Control Panel <span class="badge bg-light text-dark border ms-2">Vivekanand • Unit 3 event handling</span></h2></div>
+                            <div class="p-3 small">
+                                <p>A <code>java.awt.Frame</code> that starts the Spring Boot server on a background thread, opens the portal in the browser, and streams log lines into a <code>TextArea</code>. Uses <code>ActionListener</code>, <code>ItemListener</code>, <code>KeyAdapter</code> and <code>WindowAdapter</code>.</p>
+                                <pre class="lab-code">./mvnw -q compile exec:java -Dexec.mainClass=com.university.sms.desktop.awt.ControlPanelLauncher</pre>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-6">
+                        <div class="erp-card h-100">
+                            <div class="erp-card-header"><h2 class="erp-card-title"><i class="bi bi-window-stack text-success"></i>JavaFX Archive Viewer <span class="badge bg-light text-dark border ms-2">Arindam • Unit 5</span></h2></div>
+                            <div class="p-3 small">
+                                <p>Opens <code>archive/sms_archive.db</code> through JDBC and shows it in a <code>TableView</code> with a <code>MenuBar</code>, live search (<code>FilteredList</code>), department <code>ComboBox</code> and a <code>BarChart</code>. Data is loaded on a background <code>Task</code>.</p>
+                                <pre class="lab-code">./mvnw -q compile exec:java -Dexec.mainClass=com.university.sms.desktop.fx.DesktopLauncher</pre>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+</div>
+
+<div th:replace="~{fragments/layout :: scripts}"></div>
+<script th:inline="javascript" th:if="${tab == 'collections'}">
+    const deptAvg = /*[[${analytics.departmentAverageSgpa()}]]*/ {};
+    const gradeDist = /*[[${analytics.gradeDistribution()}]]*/ {};
+    new Chart(document.getElementById('deptChart'), {
+        type: 'bar',
+        data: { labels: Object.keys(deptAvg), datasets: [{ label: 'Average SGPA', data: Object.values(deptAvg), backgroundColor: '#1d5d9b', borderRadius: 6 }] },
+        options: { scales: { y: { beginAtZero: true, max: 10 } }, plugins: { legend: { display: false } } }
+    });
+    const gradeLabels = { O: 'O', A_PLUS: 'A+', A: 'A', B_PLUS: 'B+', B: 'B', C: 'C', F: 'F' };
+    new Chart(document.getElementById('gradeChart'), {
+        type: 'bar',
+        data: { labels: Object.keys(gradeDist).map(k => gradeLabels[k] || k),
+                datasets: [{ label: 'Subject results', data: Object.values(gradeDist),
+                             backgroundColor: Object.keys(gradeDist).map(k => k === 'F' ? '#dc2626' : '#15803d'), borderRadius: 6 }] },
+        options: { scales: { y: { beginAtZero: true, ticks: { precision: 0 } } }, plugins: { legend: { display: false } } }
+    });
+</script>
+</body>
+</html>

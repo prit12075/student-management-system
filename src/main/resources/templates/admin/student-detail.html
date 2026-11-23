@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head th:replace="~{fragments/layout :: head('Student 360 Profile')}"></head>
+<body>
+<div class="erp-wrapper">
+    <aside th:replace="~{fragments/layout :: adminSidebar('students')}"></aside>
+
+    <div class="erp-main">
+        <header th:replace="~{fragments/layout :: topbar('Student 360° Academic Profile', student.fullName + ' (' + student.rollNumber + ')')}"></header>
+
+        <main class="erp-content">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <a th:href="@{/admin/students}" class="btn btn-sm btn-outline-secondary">
+                    <i class="bi bi-arrow-left me-1"></i>Back to Students Directory
+                </a>
+                <div class="d-flex gap-2">
+                    <a th:href="@{/admin/students(editId=${student.id})}" class="btn btn-sm btn-outline-primary">
+                        <i class="bi bi-pencil-square me-1"></i>Edit Student
+                    </a>
+                    <a th:href="@{/admin/students/{id}/marksheet/pdf(id=${student.id})}" class="btn btn-sm btn-primary">
+                        <i class="bi bi-file-earmark-pdf-fill me-1"></i>Download Official PDF Marksheet
+                    </a>
+                </div>
+            </div>
+
+            <!-- Low Attendance Banner if < 75% -->
+            <div th:if="${performance.lowAttendanceAlert}" class="low-attendance-banner d-flex align-items-center justify-content-between">
+                <div class="d-flex align-items-center gap-3">
+                    <i class="bi bi-exclamation-triangle-fill fs-2"></i>
+                    <div>
+                        <div class="fw-bold fs-6">CRITICAL ATTENDANCE ALERT (&lt;75% THRESHOLD)</div>
+                        <div class="small opacity-90">
+                            This student's attendance (<span th:text="${performance.attendancePercentage} + '%'"></span>) is below the mandatory 75% university requirement.
+                        </div>
+                    </div>
+                </div>
+                <span class="badge bg-white text-danger px-3 py-2 fw-bold">ACTION REQUIRED</span>
+            </div>
+
+            <div class="row g-4">
+                <!-- Student Personal & Academic Card -->
+                <div class="col-lg-4">
+                    <div class="erp-card">
+                        <div class="erp-card-header">
+                            <h2 class="erp-card-title"><i class="bi bi-person-vcard-fill text-primary"></i> Student Information</h2>
+                        </div>
+                        <div class="p-3 small">
+                            <div class="mb-2 d-flex justify-content-between border-bottom pb-2">
+                                <span class="text-muted">Full Name:</span>
+                                <span class="fw-bold" th:text="${student.fullName}">Name</span>
+                            </div>
+                            <div class="mb-2 d-flex justify-content-between border-bottom pb-2">
+                                <span class="text-muted">Roll Number:</span>
+                                <span class="fw-bold text-primary" th:text="${student.rollNumber}">STU</span>
+                            </div>
+                            <div class="mb-2 d-flex justify-content-between border-bottom pb-2">
+                                <span class="text-muted">Portal Login ID:</span>
+                                <code th:text="${student.user.username}">student1</code>
+                            </div>
+                            <div class="mb-2 d-flex justify-content-between border-bottom pb-2">
+                                <span class="text-muted">Department:</span>
+                                <span class="fw-semibold" th:text="${student.department.name}">CSE</span>
+                            </div>
+                            <div class="mb-2 d-flex justify-content-between border-bottom pb-2">
+                                <span class="text-muted">Programme:</span>
+                                <span class="fw-semibold" th:text="${student.course.name}">B.Tech</span>
+                            </div>
+                            <div class="mb-2 d-flex justify-content-between border-bottom pb-2">
+                                <span class="text-muted">Semester / Section:</span>
+                                <span class="fw-semibold" th:text="'Sem ' + ${student.semester} + ' (Sec ' + ${student.section} + ')'">Sem 5</span>
+                            </div>
+                            <div class="mb-2 d-flex justify-content-between border-bottom pb-2">
+                                <span class="text-muted">Email:</span>
+                                <span th:text="${student.email}">email</span>
+                            </div>
+                            <div class="mb-2 d-flex justify-content-between border-bottom pb-2">
+                                <span class="text-muted">Phone:</span>
+                                <span th:text="${student.phone}">phone</span>
+                            </div>
+                            <div class="mb-2 d-flex justify-content-between border-bottom pb-2">
+                                <span class="text-muted">Guardian:</span>
+                                <span th:text="${student.guardianName + ' (' + student.guardianPhone + ')'}">Guardian</span>
+                            </div>
+                            <div class="d-flex justify-content-between">
+                                <span class="text-muted">Address:</span>
+                                <span class="text-end" th:text="${student.address}">Address</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right Column: Subject-wise Attendance & Marks -->
+                <div class="col-lg-8">
+                    <div class="erp-card">
+                        <div class="erp-card-header">
+                            <h2 class="erp-card-title"><i class="bi bi-calendar2-check-fill text-primary"></i> Subject-wise Attendance Summary</h2>
+                            <span class="badge badge-soft-primary" th:text="'Overall: ' + ${performance.attendancePercentage} + '%'">90%</span>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="table table-erp mb-0">
+                                <thead>
+                                <tr>
+                                    <th>Subject</th>
+                                    <th>Classes</th>
+                                    <th>Present</th>
+                                    <th>Absent</th>
+                                    <th>Leave</th>
+                                    <th>Percentage</th>
+                                    <th>Status</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                <tr th:each="att : ${attendanceSummaries}">
+                                    <td>
+                                        <span class="fw-bold text-primary" th:text="${att.subject.code}">CS501</span>
+                                        <div class="small text-muted" th:text="${att.subject.name}">Algorithms</div>
+                                    </td>
+                                    <td th:text="${att.totalClasses}">10</td>
+                                    <td class="text-success fw-semibold" th:text="${att.presentCount}">9</td>
+                                    <td class="text-danger fw-semibold" th:text="${att.absentCount}">1</td>
+                                    <td class="text-warning fw-semibold" th:text="${att.leaveCount}">0</td>
+                                    <td class="fw-bold" th:text="${att.attendancePercentage} + '%'">90%</td>
+                                    <td>
+                                        <span th:if="${att.lowAttendance}" class="badge badge-soft-danger">ALERT (&lt;75%)</span>
+                                        <span th:unless="${att.lowAttendance}" class="badge badge-soft-success">REGULAR</span>
+                                    </td>
+                                </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div class="erp-card mb-0">
+                        <div class="erp-card-header">
+                            <h2 class="erp-card-title"><i class="bi bi-award-fill text-primary"></i> Examination & Internal Assessment Marks</h2>
+                            <span class="badge badge-soft-success" th:text="'SGPA: ' + ${performance.sgpa} + ' • Avg: ' + ${performance.averagePercentage} + '%'">SGPA</span>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="table table-erp mb-0">
+                                <thead>
+                                <tr>
+                                    <th>Subject</th>
+                                    <th>Internal (30)</th>
+                                    <th>Assign (20)</th>
+                                    <th>Practical (20)</th>
+                                    <th>External (30)</th>
+                                    <th>Total (100)</th>
+                                    <th>Grade</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                <tr th:each="m : ${marks}">
+                                    <td>
+                                        <span class="fw-bold text-primary" th:text="${m.subject.code}">CS501</span>
+                                        <div class="small text-muted" th:text="${m.subject.name}">Subject</div>
+                                    </td>
+                                    <td th:text="${m.internalMarks}">28</td>
+                                    <td th:text="${m.assignmentMarks}">19</td>
+                                    <td th:text="${m.practicalMarks}">19</td>
+                                    <td th:text="${m.externalMarks}">27</td>
+                                    <td class="fw-bold" th:text="${m.totalMarks}">93</td>
+                                    <td>
+                                        <span class="badge badge-soft-success" th:text="${m.grade + ' (' + m.resultStatus + ')'}">O (PASS)</span>
+                                    </td>
+                                </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+</div>
+<div th:replace="~{fragments/layout :: scripts}"></div>
+</body>
+</html>
+

@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head th:replace="~{fragments/layout :: head('Enter & Update Marks')}"></head>
+<body>
+<div class="erp-wrapper">
+    <aside th:replace="~{fragments/layout :: facultySidebar('marks')}"></aside>
+
+    <div class="erp-main">
+        <header th:replace="~{fragments/layout :: topbar('Examination, Practical & Assignment Marks Evaluation', 'Enter Internal (30), Assignment (20), Practical (20) & External (30) Marks')}"></header>
+
+        <main class="erp-content">
+            <div th:replace="~{fragments/layout :: flashMessages}"></div>
+
+            <!-- Subject Selector -->
+            <div class="erp-card">
+                <div class="p-3 d-flex flex-wrap justify-content-between align-items-center gap-3">
+                    <form th:action="@{/faculty/marks}" method="get" class="d-flex align-items-center gap-2">
+                        <label class="small fw-semibold text-secondary mb-0">Assigned Subject:</label>
+                        <select name="subjectId" class="form-select form-select-sm" style="width: 340px;" onchange="this.form.submit()">
+                            <option th:each="sub : ${assignedSubjects}" th:value="${sub.id}"
+                                    th:text="${sub.code + ' - ' + sub.name + ' (Sem ' + sub.semester + ' Sec ' + sub.section + ')'}"
+                                    th:selected="${selectedSubject != null and selectedSubject.id == sub.id}"></option>
+                        </select>
+                    </form>
+                    <div class="small text-muted">
+                        <strong>Grading Scale:</strong> O (&ge;90%), A+ (&ge;80%), A (&ge;70%), B+ (&ge;60%), B (&ge;50%), C (&ge;40%), F (&lt;40%)
+                    </div>
+                </div>
+            </div>
+
+            <div th:if="${selectedSubject != null}" class="erp-card mb-0">
+                <div class="erp-card-header">
+                    <h2 class="erp-card-title">
+                        <i class="bi bi-award-fill text-primary"></i>
+                        Marks Entry Sheet: <span class="text-primary" th:text="${selectedSubject.code + ' - ' + selectedSubject.name}">Subject</span>
+                    </h2>
+                    <span class="badge badge-soft-primary" th:text="${selectedSubject.credits + ' Credits • Max Marks: 100'}">4 Cr</span>
+                </div>
+
+                <form th:action="@{/faculty/marks/save-bulk}" method="post">
+                    <input type="hidden" name="subjectId" th:value="${selectedSubject.id}">
+
+                    <div class="table-responsive">
+                        <table class="table table-hover table-erp mb-0">
+                            <thead>
+                            <tr>
+                                <th>Roll No</th>
+                                <th>Student Name</th>
+                                <th style="width: 115px;">Internal (30)</th>
+                                <th style="width: 115px;">Assignment (20)</th>
+                                <th style="width: 115px;">Practical (20)</th>
+                                <th style="width: 115px;">External (30)</th>
+                                <th>Total (100)</th>
+                                <th>Grade</th>
+                                <th>Faculty Remarks</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr th:each="stu : ${enrolledStudents}"
+                                th:with="m=${marksMap[stu.id]},
+                                         valInt=${m != null ? m.internalMarks : 0.0},
+                                         valAss=${m != null ? m.assignmentMarks : 0.0},
+                                         valPra=${m != null ? m.practicalMarks : 0.0},
+                                         valExt=${m != null ? m.externalMarks : 0.0},
+                                         valTot=${m != null ? m.totalMarks : 0.0},
+                                         valGrd=${m != null ? m.grade + ' (' + m.resultStatus + ')' : 'N/A'},
+                                         valRem=${m != null ? m.remarks : ''}">
+                                <td class="fw-bold text-primary" th:text="${stu.rollNumber}">STU001</td>
+                                <td class="fw-semibold" th:text="${stu.fullName}">Aarav Sharma</td>
+                                <td>
+                                    <input type="number" step="0.5" min="0" max="30"
+                                           class="form-control form-control-sm mark-calc-input"
+                                           th:attr="data-student-id=${stu.id}"
+                                           th:name="'internal_' + ${stu.id}"
+                                           th:value="${valInt}" required>
+                                </td>
+                                <td>
+                                    <input type="number" step="0.5" min="0" max="20"
+                                           class="form-control form-control-sm mark-calc-input"
+                                           th:attr="data-student-id=${stu.id}"
+                                           th:name="'assignment_' + ${stu.id}"
+                                           th:value="${valAss}" required>
+                                </td>
+                                <td>
+                                    <input type="number" step="0.5" min="0" max="20"
+                                           class="form-control form-control-sm mark-calc-input"
+                                           th:attr="data-student-id=${stu.id}"
+                                           th:name="'practical_' + ${stu.id}"
+                                           th:value="${valPra}" required>
+                                </td>
+                                <td>
+                                    <input type="number" step="0.5" min="0" max="30"
+                                           class="form-control form-control-sm mark-calc-input"
+                                           th:attr="data-student-id=${stu.id}"
+                                           th:name="'external_' + ${stu.id}"
+                                           th:value="${valExt}" required>
+                                </td>
+                                <td class="fw-bold text-dark" th:id="'total_preview_' + ${stu.id}"
+                                    th:text="${valTot + ' / 100'}">93 / 100</td>
+                                <td>
+                                    <span th:id="'grade_preview_' + ${stu.id}"
+                                          class="badge rounded-pill px-3 py-2"
+                                          th:classappend="${m != null and m.resultStatus == 'PASS'} ? 'badge-soft-success' : 'badge-soft-danger'"
+                                          th:text="${valGrd}">O (PASS)</span>
+                                </td>
+                                <td>
+                                    <input type="text" class="form-control form-control-sm"
+                                           th:name="'remarks_' + ${stu.id}"
+                                           th:value="${valRem}"
+                                           placeholder="Evaluation comment...">
+                                </td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="p-3 bg-light border-top d-flex justify-content-between align-items-center">
+                        <span class="small text-muted">
+                            <i class="bi bi-calculator me-1"></i>Totals, Percentages, Grades, and SGPA credits are automatically computed on save.
+                        </span>
+                        <button type="submit" class="btn btn-primary px-4 fw-bold">
+                            <i class="bi bi-check2-all me-1"></i>Save All Marks &amp; Publish Grades
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </main>
+    </div>
+</div>
+<div th:replace="~{fragments/layout :: scripts}"></div>
+</body>
+</html>
+

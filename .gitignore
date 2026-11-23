@@ -1,0 +1,18 @@
+# build output
+target/
+.deps/
+*.class
+
+# runtime data created by the app
+data/
+logs/
+archive/
+*.smsbak
+*.trace.db
+
+# IDE / OS
+.idea/
+*.iml
+.vscode/
+.DS_Store
+.sms_src.tgz

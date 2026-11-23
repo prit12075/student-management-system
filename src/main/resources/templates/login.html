@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head th:replace="~{fragments/layout :: head('University ERP Login Portal')}"></head>
+<body class="login-hero-bg">
+
+<div class="container">
+    <div class="row justify-content-center align-items-stretch g-0 shadow-lg rounded-4 overflow-hidden bg-white" style="max-width: 1080px; margin: 0 auto;">
+
+        <!-- Left Branding & Role Overview Column -->
+        <div class="col-lg-5 d-flex flex-column justify-content-between p-4 p-md-5 text-white"
+             style="background: linear-gradient(160deg, #0b2545 0%, #0f3460 60%, #1d5d9b 100%);">
+            <div>
+                <div class="d-flex align-items-center gap-3 mb-4">
+                    <div class="erp-brand-icon" style="width: 52px; height: 52px; font-size: 1.6rem;">
+                        <i class="bi bi-mortarboard-fill text-info"></i>
+                    </div>
+                    <div>
+                        <h2 class="h5 fw-bold mb-0 text-white">APEX NATIONAL INSTITUTE</h2>
+                        <div class="small text-white-50">Integrated University ERP v2.5</div>
+                    </div>
+                </div>
+
+                <h3 class="h4 fw-bold mb-3" id="portalHeroTitle">Unified Campus Academic & Examination Management</h3>
+                <p class="text-white-50 small mb-4" id="portalHeroDesc">
+                    Role-based access control powered by Spring Security & BCrypt encryption. Select your designated portal to access academic records, attendance, examinations, and official marksheets.
+                </p>
+
+                <div class="p-3 rounded-3 mb-3" style="background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255,255,255,0.14);">
+                    <div class="fw-semibold small text-info mb-2">
+                        <i class="bi bi-lightning-charge-fill me-1"></i> Instant Demo Credentials (Click to Fill & Sign In)
+                    </div>
+                    <div class="d-grid gap-2">
+                        <button type="button" class="btn btn-sm btn-light text-start d-flex justify-content-between align-items-center fw-semibold"
+                                onclick="fillPortalLogin('admin', 'admin', 'admin123')">
+                            <span><i class="bi bi-shield-lock-fill text-primary me-2"></i>Admin Portal (`admin`)</span>
+                            <span class="badge bg-primary">Registrar</span>
+                        </button>
+                        <button type="button" class="btn btn-sm btn-light text-start d-flex justify-content-between align-items-center fw-semibold"
+                                onclick="fillPortalLogin('faculty', 'faculty1', 'faculty123')">
+                            <span><i class="bi bi-easel2-fill text-info me-2"></i>Faculty Portal (`faculty1`)</span>
+                            <span class="badge bg-info text-dark">Dr. Rajesh (CSE)</span>
+                        </button>
+                        <button type="button" class="btn btn-sm btn-light text-start d-flex justify-content-between align-items-center fw-semibold"
+                                onclick="fillPortalLogin('student', 'student1', 'student123')">
+                            <span><i class="bi bi-person-badge-fill text-success me-2"></i>Student Portal (`student1`)</span>
+                            <span class="badge bg-success">Aarav (90% Att.)</span>
+                        </button>
+                        <button type="button" class="btn btn-sm btn-light text-start d-flex justify-content-between align-items-center fw-semibold"
+                                onclick="fillPortalLogin('student', 'student3', 'student123')">
+                            <span><i class="bi bi-exclamation-triangle-fill text-danger me-2"></i>Low Attendance Student (`student3`)</span>
+                            <span class="badge bg-danger">Rohan (60% &lt;75%)</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="small text-white-50 pt-3 border-top border-light border-opacity-10 d-flex justify-content-between">
+                <span><i class="bi bi-database-check me-1"></i>MySQL + Hibernate JPA</span>
+                <span><i class="bi bi-shield-check me-1"></i>Spring Security 6</span>
+            </div>
+        </div>
+
+        <!-- Right 3-Portal Login Form Column -->
+        <div class="col-lg-7 p-4 p-md-5 bg-white">
+            <div class="mb-4">
+                <span class="badge badge-soft-primary px-3 py-2 rounded-pill mb-2">SELECT LOGIN PORTAL</span>
+                <h1 class="h4 fw-bold text-dark mb-1" id="activePortalHeading">University Administration Portal</h1>
+                <p class="text-muted small mb-0" id="activePortalSubheading">Sign in with your university credentials to continue.</p>
+            </div>
+
+            <!-- Three Separate Portal Selector Tabs -->
+            <div class="row g-2 mb-4">
+                <div class="col-4">
+                    <div id="tab-admin" class="portal-tab-btn text-center active" onclick="switchPortal('admin')">
+                        <i class="bi bi-building-fill-lock d-block fs-4 mb-1"></i>
+                        <div class="small">Admin Portal</div>
+                    </div>
+                </div>
+                <div class="col-4">
+                    <div id="tab-faculty" class="portal-tab-btn text-center" onclick="switchPortal('faculty')">
+                        <i class="bi bi-person-video3 d-block fs-4 mb-1"></i>
+                        <div class="small">Faculty Portal</div>
+                    </div>
+                </div>
+                <div class="col-4">
+                    <div id="tab-student" class="portal-tab-btn text-center" onclick="switchPortal('student')">
+                        <i class="bi bi-mortarboard-fill d-block fs-4 mb-1"></i>
+                        <div class="small">Student Portal</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Alerts -->
+            <div th:if="${param.error}" class="alert alert-danger py-2 small d-flex align-items-center gap-2">
+                <i class="bi bi-exclamation-octagon-fill"></i>
+                <span>Invalid username or password. Please verify your portal credentials.</span>
+            </div>
+            <div th:if="${param.logout}" class="alert alert-success py-2 small d-flex align-items-center gap-2">
+                <i class="bi bi-check-circle-fill"></i>
+                <span>You have been securely logged out of the University ERP.</span>
+            </div>
+
+            <!-- Login Form -->
+            <form th:action="@{/perform-login}" method="post" id="erpLoginForm">
+                <div class="mb-3">
+                    <label for="username" class="form-label fw-semibold small text-secondary" id="usernameLabel">
+                        Admin Username / Email
+                    </label>
+                    <div class="input-group">
+                        <span class="input-group-text bg-light"><i class="bi bi-person-fill text-primary"></i></span>
+                        <input type="text" class="form-control" id="username" name="username"
+                               placeholder="Enter username (e.g. admin, faculty1, student1)" required autofocus>
+                    </div>
+                </div>
+
+                <div class="mb-4">
+                    <label for="password" class="form-label fw-semibold small text-secondary">Password</label>
+                    <div class="input-group">
+                        <span class="input-group-text bg-light"><i class="bi bi-key-fill text-primary"></i></span>
+                        <input type="password" class="form-control" id="password" name="password"
+                               placeholder="Enter password" required>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn btn-primary w-100 py-2 fw-bold shadow-sm" style="background: var(--erp-navy); border-color: var(--erp-navy);">
+                    <i class="bi bi-box-arrow-in-right me-2"></i>
+                    <span id="submitBtnText">Sign In to Admin Portal</span>
+                </button>
+            </form>
+            <div class="text-center mt-3 small">
+                <a th:href="@{/verify}" class="text-decoration-none"><i class="bi bi-patch-check-fill me-1"></i>Verify a marksheet (public)</a>
+            </div>
+
+            <!-- Portal Feature Highlights -->
+            <div class="mt-4 pt-3 border-top">
+                <div class="small fw-bold text-secondary mb-2">PORTAL CAPABILITIES:</div>
+                <div id="features-admin" class="row g-2 small text-muted">
+                    <div class="col-6"><i class="bi bi-check2-circle text-primary me-1"></i>Student & Faculty CRUD</div>
+                    <div class="col-6"><i class="bi bi-check2-circle text-primary me-1"></i>Assign Faculty to Subjects</div>
+                    <div class="col-6"><i class="bi bi-check2-circle text-primary me-1"></i>Depts, Courses & Timetable</div>
+                    <div class="col-6"><i class="bi bi-check2-circle text-primary me-1"></i>Low Attendance (&lt;75%) Alerts</div>
+                </div>
+                <div id="features-faculty" class="row g-2 small text-muted d-none">
+                    <div class="col-6"><i class="bi bi-check2-circle text-info me-1"></i>Mark Present/Absent/Leave</div>
+                    <div class="col-6"><i class="bi bi-check2-circle text-info me-1"></i>Internal, Practical & Exam Marks</div>
+                    <div class="col-6"><i class="bi bi-check2-circle text-info me-1"></i>Publish Class Assignments</div>
+                    <div class="col-6"><i class="bi bi-check2-circle text-info me-1"></i>Generate Attendance PDF</div>
+                </div>
+                <div id="features-student" class="row g-2 small text-muted d-none">
+                    <div class="col-6"><i class="bi bi-check2-circle text-success me-1"></i>Subject-wise Attendance %</div>
+                    <div class="col-6"><i class="bi bi-check2-circle text-success me-1"></i>Automatic &lt;75% Alert Banner</div>
+                    <div class="col-6"><i class="bi bi-check2-circle text-success me-1"></i>Internal & External Results</div>
+                    <div class="col-6"><i class="bi bi-check2-circle text-success me-1"></i>Download Official PDF Marksheet</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script th:inline="javascript">
+    const initialPortal = /*[[${activePortal}]]*/ 'admin';
+
+    function switchPortal(portal) {
+        ['admin', 'faculty', 'student'].forEach(p => {
+            document.getElementById('tab-' + p).classList.toggle('active', p === portal);
+            document.getElementById('features-' + p).classList.toggle('d-none', p !== portal);
+        });
+
+        const heading = document.getElementById('activePortalHeading');
+        const sub = document.getElementById('activePortalSubheading');
+        const userLabel = document.getElementById('usernameLabel');
+        const btnText = document.getElementById('submitBtnText');
+
+        if (portal === 'admin') {
+            heading.textContent = 'University Administration Portal';
+            sub.textContent = 'Manage students, faculty, departments, courses, timetable, notices, and analytics.';
+            userLabel.textContent = 'Administrator Username / Email';
+            btnText.textContent = 'Sign In to Admin Portal';
+        } else if (portal === 'faculty') {
+            heading.textContent = 'Faculty & Academic Staff Portal';
+            sub.textContent = 'Mark student attendance, enter internal/practical/exam marks, and manage assignments.';
+            userLabel.textContent = 'Faculty Username / Employee Email';
+            btnText.textContent = 'Sign In to Faculty Portal';
+        } else {
+            heading.textContent = 'Student Self-Service Portal';
+            sub.textContent = 'Check subject-wise attendance, <75% alerts, exam results, timetable, and download PDF marksheets.';
+            userLabel.textContent = 'Student Username / Roll Number / Email';
+            btnText.textContent = 'Sign In to Student Portal';
+        }
+    }
+
+    function fillPortalLogin(portal, username, password) {
+        switchPortal(portal);
+        document.getElementById('username').value = username;
+        document.getElementById('password').value = password;
+        document.getElementById('erpLoginForm').submit();
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        switchPortal(initialPortal || 'admin');
+    });
+</script>
+
+</body>
+</html>
+
