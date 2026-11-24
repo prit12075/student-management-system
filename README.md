@@ -38,7 +38,7 @@ The full member-wise split is in [`CONTRIBUTIONS.md`](CONTRIBUTIONS.md).
 |---|---|
 | Project report (introduction, contributions, code of each class, screenshots), 39 pages | [`docs/Project_Report.pdf`](docs/Project_Report.pdf) (editable: `docs/Project_Report.docx`) |
 | Working code | `src/` (110 Java classes, Thymeleaf templates, tests) |
-| Video presentation | Slides with speaker notes: [`docs/Apex_ERP_Presentation.pptx`](docs/Apex_ERP_Presentation.pptx) • script: [`docs/VIDEO_SCRIPT.md`](docs/VIDEO_SCRIPT.md) • silent demo: [`docs/SMS_demo_walkthrough.mp4`](docs/SMS_demo_walkthrough.mp4) |
+| Video presentation | Slides with speaker notes: [`docs/Apex_ERP_Presentation.pptx`](docs/Apex_ERP_Presentation.pptx) • per-slide script: [`docs/Presentation_Script.pdf`](docs/Presentation_Script.pdf) / [`docs/VIDEO_SCRIPT.md`](docs/VIDEO_SCRIPT.md) • silent demo: [`docs/SMS_demo_walkthrough.mp4`](docs/SMS_demo_walkthrough.mp4) |
 | Screenshots of the complete flow | [`docs/screenshots/`](docs/screenshots) |
 
 ## Features
